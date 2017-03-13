@@ -1,0 +1,9 @@
+C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\bin\Debug\netstandard1.6\NDbPortal.deps.json
+C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\bin\Debug\netstandard1.6\NDbPortal.dll
+C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\bin\Debug\netstandard1.6\NDbPortal.pdb
+C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\bin\Debug\netstandard1.6\NDbPortal.Names.dll
+C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\bin\Debug\netstandard1.6\NDbPortal.Names.pdb
+C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\obj\Debug\netstandard1.6\NDbPortal.csprojResolveAssemblyReference.cache
+C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\obj\Debug\netstandard1.6\NDbPortal.AssemblyInfo.cs
+C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\obj\Debug\netstandard1.6\NDbPortal.dll
+C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\obj\Debug\netstandard1.6\NDbPortal.pdb
