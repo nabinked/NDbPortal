@@ -20,14 +20,8 @@ namespace NDbPortal
         }
         public ITableInfoBuilder<T> SetPrimaryKey()
         {
-            _tableInfo.PrimaryKey = GetPrimaryKey();
+            _tableInfo.PrimaryKey = ReflectionUtilities.GetPrimaryKey(_t);
             return this;
-        }
-
-        private string GetPrimaryKey()
-        {
-            var priamryKeyAttr = _t.GetCustomAttributes<PrimaryKeyAttribute>(true).ToList();
-            return priamryKeyAttr.Count > 0 ? priamryKeyAttr[0].Value : "id";
         }
 
         public ITableInfoBuilder<T> SetTableName()
@@ -70,7 +64,7 @@ namespace NDbPortal
             var notDisplayColumns = columns.Where(x => !x.IsDisplayColumn);
             foreach (var columnInfo in notDisplayColumns)
             {
-                if (!columnInfo.ColumnName.Equals(GetPrimaryKey(), StringComparison.OrdinalIgnoreCase))
+                if (!columnInfo.ColumnName.Equals(ReflectionUtilities.GetPrimaryKey(_t), StringComparison.OrdinalIgnoreCase))
                 {
                     retColumns.Add(columnInfo);
                 }

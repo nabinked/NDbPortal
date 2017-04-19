@@ -1,17 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using NDbPortal.Names;
 
 namespace NDbPortal
 {
     public class SqlGenerator
     {
         private readonly TableInfo _tableInfo;
+        private readonly INamingConvention _namingConvention;
 
         private string WhereId => $" WHERE {_tableInfo.PrimaryKey} = @{_tableInfo.PrimaryKey}";
 
-        public SqlGenerator(TableInfo tableInfo)
+        public SqlGenerator(TableInfo tableInfo, INamingConvention namingConvention)
         {
             _tableInfo = tableInfo;
+            _namingConvention = namingConvention;
         }
 
         #region Public Members
@@ -79,10 +83,39 @@ namespace NDbPortal
         {
             return $"SELECT COUNT(*) FROM {_tableInfo.FullTableName};";
         }
+
+        public string GetStoredProcQuery(object prms = null)
+        {
+
+            return $"SELECT * FROM {_tableInfo.FullTableName}({GetStoredProcParamsNameValuesOnlySql(prms)})";
+        }
+
+        public string GetStoredProcCountQuery(object prms = null)
+        {
+            return $"SELECT COUNT(*) FROM {_tableInfo.FullTableName}({GetStoredProcParamsNameValuesOnlySql(prms)});";
+        }
         #endregion
 
 
         #region Private Members
+
+        private string GetStoredProcParamsNameValuesOnlySql(object obj)
+        {
+            var paramsSql = string.Empty;
+            if (obj != null)
+            {
+                var properties = obj.GetType().GetProperties().OrderBy(x => x.Name);
+                var paramNameValues = new List<string>();
+                foreach (var info in properties)
+                {
+                    paramNameValues.Add($"{_namingConvention.ConvertToDbName(info.Name)} => @{info.Name}");
+                }
+                paramsSql = string.Join(",", paramNameValues);
+            }
+
+            return paramsSql;
+        }
+
         private string GetSetStringForUpdateQuery(IList<string> updatableColumnNames)
         {
             var setString = "";

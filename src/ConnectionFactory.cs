@@ -3,12 +3,14 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.Options;
+using NDbPortal.Names;
 using Npgsql;
 
 namespace NDbPortal
 {
     public class ConnectionFactory : IConnectionFactory
     {
+        private DbOptions _dbOptions;
         private string ConnectionString { get; set; }
 
         public IDbConnection Create()
@@ -19,7 +21,8 @@ namespace NDbPortal
 
         public ConnectionFactory(IOptions<DbOptions> dbOptions)
         {
-            ConnectionString = dbOptions.Value.GetConnectionString();
+            _dbOptions = dbOptions.Value;
+            ConnectionString = GetConnectionString();
             //if (dbOptions.Value.Enums.Any())
             //{
             //    //_mapEnums = ;
@@ -50,6 +53,34 @@ namespace NDbPortal
         public IDbCommand CreateCommand()
         {
             return Create().CreateCommand();
+        }
+
+        public string GetConnectionString()
+        {
+            switch (_dbOptions.DbType)
+            {
+                case (DbEnums.DbType.Postgres):
+                    {
+                        if (!string.IsNullOrWhiteSpace(_dbOptions.ConnectionStrings.NpgsqlConnectionStringOptions.Database))
+                            return new NpgsqlConnectionStringBuilder()
+                            {
+                                Host = _dbOptions.ConnectionStrings.NpgsqlConnectionStringOptions.Server,
+                                Password = _dbOptions.ConnectionStrings.NpgsqlConnectionStringOptions.Password,
+                                Database = _dbOptions.ConnectionStrings.NpgsqlConnectionStringOptions.Database,
+                                Username = _dbOptions.ConnectionStrings.NpgsqlConnectionStringOptions.UserId,
+                                Port = _dbOptions.ConnectionStrings.NpgsqlConnectionStringOptions.Port
+                            }.ConnectionString;
+                        else return _dbOptions.ConnectionStrings.DefaultConnectionString;
+                    }
+                case (DbEnums.DbType.MsSql):
+                case (DbEnums.DbType.MySql):
+                    {
+                        return _dbOptions.ConnectionStrings.DefaultConnectionString;
+                    }
+                default:
+                    return _dbOptions.ConnectionStrings.DefaultConnectionString;
+
+            }
         }
     }
 }

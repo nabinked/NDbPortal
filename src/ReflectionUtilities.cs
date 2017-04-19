@@ -159,5 +159,21 @@ namespace NDbPortal
 
             return attrs.Distinct().Any();
         }
+
+        public static bool HasProperty(this object obj, string propertyName)
+        {
+            return obj.GetType().GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Instance) != null;
+        }
+
+        public static string GetPrimaryKey<T>(T t)
+        {
+            return GetPrimaryKey(typeof(T).GetTypeInfo());
+        }
+
+        public static string GetPrimaryKey(TypeInfo t)
+        {
+            var priamryKeyAttr = t.GetCustomAttributes<PrimaryKeyAttribute>(true).ToList();
+            return priamryKeyAttr.Count > 0 ? priamryKeyAttr[0].Value : "id";
+        }
     }
 }

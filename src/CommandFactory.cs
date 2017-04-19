@@ -1,6 +1,4 @@
 ﻿using System.Data;
-using Microsoft.Extensions.Options;
-using Npgsql;
 
 namespace NDbPortal
 {
@@ -21,13 +19,19 @@ namespace NDbPortal
         public IDbCommand Create(string commandText, object parameters = null, bool isStoredProcedure = false)
         {
             var cmd = _connectionFactory.Create().CreateCommand();
-            cmd.CommandText = commandText;
             if (isStoredProcedure)
             {
                 cmd.CommandType = CommandType.StoredProcedure;
             }
             var cmdTextParam = new CommandBuilder(cmd);
             return cmdTextParam.GetFinalCommand(commandText, parameters);
+        }
+
+        public IDbCommand Create(IDbCommand cmd, string commandText, object parameters = null)
+        {
+            var cmdTextParam = new CommandBuilder(cmd);
+            return cmdTextParam.GetFinalCommand(commandText, parameters);
+
         }
     }
 }

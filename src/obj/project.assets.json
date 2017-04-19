@@ -82,32 +82,6 @@
           "lib/netstandard1.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {}
         }
       },
-      "Microsoft.Extensions.Logging/1.1.0": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "1.1.0",
-          "Microsoft.Extensions.Logging.Abstractions": "1.1.0",
-          "NETStandard.Library": "1.6.1"
-        },
-        "compile": {
-          "lib/netstandard1.1/Microsoft.Extensions.Logging.dll": {}
-        },
-        "runtime": {
-          "lib/netstandard1.1/Microsoft.Extensions.Logging.dll": {}
-        }
-      },
-      "Microsoft.Extensions.Logging.Abstractions/1.1.0": {
-        "type": "package",
-        "dependencies": {
-          "NETStandard.Library": "1.6.1"
-        },
-        "compile": {
-          "lib/netstandard1.1/Microsoft.Extensions.Logging.Abstractions.dll": {}
-        },
-        "runtime": {
-          "lib/netstandard1.1/Microsoft.Extensions.Logging.Abstractions.dll": {}
-        }
-      },
       "Microsoft.Extensions.Options/1.1.1": {
         "type": "package",
         "dependencies": {
@@ -207,6 +181,21 @@
           }
         }
       },
+      "NDbPortal.Names/1.0.5": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Options": "1.1.1",
+          "NETStandard.Library": "1.6.1",
+          "System.Data.Common": "4.3.0",
+          "System.Dynamic.Runtime": "4.3.0"
+        },
+        "compile": {
+          "lib/netstandard1.6/NDbPortal.Names.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.6/NDbPortal.Names.dll": {}
+        }
+      },
       "NETStandard.Library/1.6.1": {
         "type": "package",
         "dependencies": {
@@ -256,11 +245,10 @@
           "System.Xml.XDocument": "4.3.0"
         }
       },
-      "Npgsql/3.2.1": {
+      "Npgsql/3.2.2": {
         "type": "package",
         "dependencies": {
-          "Microsoft.Extensions.Logging": "1.1.0",
-          "NETStandard.Library": "1.6.0",
+          "NETStandard.Library": "1.6.1",
           "System.Collections.Specialized": "4.3.0",
           "System.ComponentModel.TypeConverter": "4.3.0",
           "System.Data.Common": "4.3.0",
@@ -1825,15 +1813,6 @@
         "runtime": {
           "lib/netstandard1.3/System.Xml.XDocument.dll": {}
         }
-      },
-      "NDbPortal.Names/1.0.3": {
-        "type": "project",
-        "framework": ".NETStandard,Version=v1.6",
-        "dependencies": {
-          "NETStandard.Library": "1.6.1",
-          "System.Data.Common": "4.3.0",
-          "System.Dynamic.Runtime": "4.3.0"
-        }
       }
     }
   },
@@ -1937,28 +1916,6 @@
         "Microsoft.Extensions.DependencyInjection.Abstractions.nuspec",
         "lib/netstandard1.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "lib/netstandard1.0/Microsoft.Extensions.DependencyInjection.Abstractions.xml"
-      ]
-    },
-    "Microsoft.Extensions.Logging/1.1.0": {
-      "sha512": "IbNogJJE3NRtc5/DAtKEkhXaUQK9N7I6A5G2+ZfyBzWMvAgLKSimESpNMp+gnzUYsW3YbHkeT8jLk9m/3vGY5A==",
-      "type": "package",
-      "path": "microsoft.extensions.logging/1.1.0",
-      "files": [
-        "Microsoft.Extensions.Logging.1.1.0.nupkg.sha512",
-        "Microsoft.Extensions.Logging.nuspec",
-        "lib/netstandard1.1/Microsoft.Extensions.Logging.dll",
-        "lib/netstandard1.1/Microsoft.Extensions.Logging.xml"
-      ]
-    },
-    "Microsoft.Extensions.Logging.Abstractions/1.1.0": {
-      "sha512": "5zDtM0Dal+pwDIj49PPq9Y8SYu6z70v55VDx70rOuquLTlaCIdv9uItkcp9c1FH/ASNdfANVnh1cTwd85dyE+Q==",
-      "type": "package",
-      "path": "microsoft.extensions.logging.abstractions/1.1.0",
-      "files": [
-        "Microsoft.Extensions.Logging.Abstractions.1.1.0.nupkg.sha512",
-        "Microsoft.Extensions.Logging.Abstractions.nuspec",
-        "lib/netstandard1.1/Microsoft.Extensions.Logging.Abstractions.dll",
-        "lib/netstandard1.1/Microsoft.Extensions.Logging.Abstractions.xml"
       ]
     },
     "Microsoft.Extensions.Options/1.1.1": {
@@ -2084,6 +2041,16 @@
         "runtimes/win/lib/netstandard1.3/Microsoft.Win32.Registry.dll"
       ]
     },
+    "NDbPortal.Names/1.0.5": {
+      "sha512": "7ko/70Id2xpj22QeWnJY61N62KYKN39K/DiyCJSVAkq015yMcs1WGg7WbMt18diUJoTxomZy/7LI3iP1fZ3WrA==",
+      "type": "package",
+      "path": "ndbportal.names/1.0.5",
+      "files": [
+        "lib/netstandard1.6/NDbPortal.Names.dll",
+        "ndbportal.names.1.0.5.nupkg.sha512",
+        "ndbportal.names.nuspec"
+      ]
+    },
     "NETStandard.Library/1.6.1": {
       "sha512": "WcSp3+vP+yHNgS8EV5J7pZ9IRpeDuARBPN28by8zqff1wJQXm26PVU8L3/fYLBJVU7BtDyqNVWq2KlCVvSSR4A==",
       "type": "package",
@@ -2095,10 +2062,10 @@
         "dotnet_library_license.txt"
       ]
     },
-    "Npgsql/3.2.1": {
-      "sha512": "wtqxI0GwFoeT+krtps0mcUM2TkEDT35VMatO0JEA5BzsP7cY4gWBuS1hwyskMBj8i7tBtCVXg/SjfOCTJpSdWw==",
+    "Npgsql/3.2.2": {
+      "sha512": "iYK7fveXLQTMfPdZwecYZbKm9ys+7bELn72nYYSQCW2VZJWMs+8L2rGIT88KIwf4DjZ6WhLl1tWuTx8GlzVAQw==",
       "type": "package",
-      "path": "npgsql/3.2.1",
+      "path": "npgsql/3.2.2",
       "files": [
         "lib/net45/Npgsql.dll",
         "lib/net45/Npgsql.xml",
@@ -2106,7 +2073,7 @@
         "lib/net451/Npgsql.xml",
         "lib/netstandard1.3/Npgsql.dll",
         "lib/netstandard1.3/Npgsql.xml",
-        "npgsql.3.2.1.nupkg.sha512",
+        "npgsql.3.2.2.nupkg.sha512",
         "npgsql.nuspec"
       ]
     },
@@ -5954,11 +5921,6 @@
         "ref/xamarintvos10/_._",
         "ref/xamarinwatchos10/_._"
       ]
-    },
-    "NDbPortal.Names/1.0.3": {
-      "type": "project",
-      "path": "../NDbPortal.Names/NDbPortal.Names.csproj",
-      "msbuildProject": "../NDbPortal.Names/NDbPortal.Names.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -5966,9 +5928,9 @@
       "Microsoft.CSharp >= 4.3.0",
       "Microsoft.Extensions.DependencyInjection.Abstractions >= 1.1.0",
       "Microsoft.Extensions.Options.ConfigurationExtensions >= 1.1.1",
-      "NDbPortal.Names >= 1.0.3",
+      "NDbPortal.Names >= 1.0.5",
       "NETStandard.Library >= 1.6.1",
-      "Npgsql >= 3.2.1",
+      "Npgsql >= 3.2.2",
       "System.Data.Common >= 4.3.0",
       "System.Dynamic.Runtime >= 4.3.0",
       "System.Reflection.Extensions >= 4.3.0",
@@ -5979,23 +5941,19 @@
     "C:\\Users\\nabin\\.nuget\\packages\\": {}
   },
   "project": {
-    "version": "1.0.6",
+    "version": "1.0.20",
     "restore": {
-      "projectUniqueName": "C:\\Users\\nabin\\OneDrive\\MyRepositories\\NDbPortal\\NDbPortal.csproj",
+      "projectUniqueName": "C:\\Users\\nabin\\OneDrive\\MyRepositories\\NDbPortal\\src\\NDbPortal.csproj",
       "projectName": "NDbPortal",
-      "projectPath": "C:\\Users\\nabin\\OneDrive\\MyRepositories\\NDbPortal\\NDbPortal.csproj",
-      "outputPath": "C:\\Users\\nabin\\OneDrive\\MyRepositories\\NDbPortal\\obj\\",
+      "projectPath": "C:\\Users\\nabin\\OneDrive\\MyRepositories\\NDbPortal\\src\\NDbPortal.csproj",
+      "outputPath": "C:\\Users\\nabin\\OneDrive\\MyRepositories\\NDbPortal\\src\\obj\\",
       "projectStyle": "PackageReference",
       "originalTargetFrameworks": [
         "netstandard1.6"
       ],
       "frameworks": {
         "netstandard1.6": {
-          "projectReferences": {
-            "C:\\Users\\nabin\\OneDrive\\MyRepositories\\NDbPortal.Names\\NDbPortal.Names.csproj": {
-              "projectPath": "C:\\Users\\nabin\\OneDrive\\MyRepositories\\NDbPortal.Names\\NDbPortal.Names.csproj"
-            }
-          }
+          "projectReferences": {}
         }
       }
     },
@@ -6008,7 +5966,7 @@
           },
           "Npgsql": {
             "target": "Package",
-            "version": "3.2.1"
+            "version": "3.2.2"
           },
           "Microsoft.Extensions.DependencyInjection.Abstractions": {
             "target": "Package",
@@ -6030,6 +5988,10 @@
           "System.Data.Common": {
             "target": "Package",
             "version": "4.3.0"
+          },
+          "NDbPortal.Names": {
+            "target": "Package",
+            "version": "1.0.5"
           },
           "Microsoft.CSharp": {
             "target": "Package",

@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Dynamic;
-using System.Linq;
-using System.Reflection;
 using System.Text;
 using NDbPortal.Names;
 
@@ -14,14 +11,15 @@ namespace NDbPortal
         private readonly IDbCommand _dbCommand;
         private readonly NamingConvention _namingConvention;
 
-        public CommandBuilder(IDbCommand dbCommand, NamingConvention namingConvention=null)
+        public CommandBuilder(IDbCommand dbCommand, NamingConvention namingConvention = null)
         {
             _dbCommand = dbCommand;
+            _dbCommand.Parameters.Clear();
             this._namingConvention = namingConvention ?? new NamingConvention()
-                                     {
-                                         DbNamingConvention = DbEnums.NamingConventions.UnderScoreCase,
-                                         PocoNamingConvention = DbEnums.NamingConventions.PascalCase
-                                     };
+            {
+                DbNamingConvention = DbEnums.NamingConventions.UnderScoreCase,
+                PocoNamingConvention = DbEnums.NamingConventions.PascalCase
+            };
         }
 
         #region Public Behaviours
@@ -30,10 +28,14 @@ namespace NDbPortal
         {
             return GetCommand(sql, parameters);
         }
+
         #endregion
+
+
         #region Private Behaviours
         IDbCommand GetCommand(string sql, object parameters = null)
         {
+            _dbCommand.CommandText = sql;
             if (parameters != null)
             {
                 if (_dbCommand.CommandType == CommandType.StoredProcedure)
@@ -62,7 +64,7 @@ namespace NDbPortal
             var param = dbCommand.CreateParameter();
             param.ParameterName = paramName;
             param.Value = paramValue;
-           //param.DbType = TypeToDbTypeMap.GetDbType(paramValue.GetType());
+            //param.DbType = TypeToDbTypeMap.GetDbType(paramValue.GetType());
             return param;
         }
 
@@ -84,7 +86,7 @@ namespace NDbPortal
                         break;
                 }
                 var endOfSql = i == sql.Length - 1;
-                if ((char.IsWhiteSpace(c) || endOfSql) && paramFound)
+                if ((char.IsWhiteSpace(c) || c.Equals(',') || endOfSql) && paramFound)
                 {
                     paramFound = false;
                     var paramStopIndex = endOfSql ? i + 1 : i;

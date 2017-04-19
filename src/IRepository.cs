@@ -39,8 +39,8 @@ namespace NDbPortal
         /// Updates an entity
         /// </summary>
         /// <param name="obj">the updated entity</param>
-        /// <returns>success status in boolean</returns>
-        bool Update(T obj);
+        /// <returns>no. of records affected</returns>
+        long Update(T obj);
 
         /// <summary>
         /// Deletes an entity
@@ -69,5 +69,9 @@ namespace NDbPortal
         /// <param name="orderByColumn">order by column name</param>
         /// <returns></returns>
         PagedList<T> GetPagedList(long page, string orderByColumn = "id");
+
+        long Upsert(T t);
+
+        bool IsNew(T t);
     }
 }

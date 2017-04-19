@@ -8,9 +8,138 @@ namespace NDbPortal
 {
     public static class Mapper
     {
+        /// <summary>
+        /// Gets the T Object from the command
+        /// </summary>
+        /// <param name="command">Command to be executed</param>
+        /// <param name="dispose">dispose the command</param>
+        /// <returns>an instance of T</returns>
+        public static T GetObject<T>(IDbCommand command, bool dispose = true)
+        {
+            IDataReader rdr = null;
+            try
+            {
+                if (command.Connection.State != ConnectionState.Open)
+                    command.Connection.Open();
+                var hasRows = false;
+                T t = default(T);
+                using (rdr = command.ExecuteReader())
+                {
+                    while (rdr.Read())
+                    {
+                        hasRows = true;
+                        t = GetSingleObject<T>(rdr);
+                        rdr.Dispose();
+                        break;
+                    }
+
+                }
+                return hasRows ? t : default(T);
+            }
+            finally
+            {
+                if (dispose)
+                {
+                    Dispose(command, rdr);
+
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a list of T Objects from the command
+        /// </summary>
+        /// <param name="command">Command to be executed</param>
+        /// <param name="dispose">dispose cmd object</param>
+        /// <returns>List of instance of T objects</returns>
+        public static IEnumerable<T> GetObjects<T>(IDbCommand command, bool dispose = true)
+        {
+            IDataReader rdr = null;
+            try
+            {
+                var tList = new List<T>();
+                if (command.Connection.State != ConnectionState.Open)
+                    command.Connection.Open();
+                using (rdr = command.ExecuteReader())
+                {
+                    while (rdr.Read())
+                    {
+                        tList.Add(GetSingleObject<T>(rdr));
+                    }
+                }
+                return tList;
+            }
+            finally
+            {
+                if (dispose)
+                {
+                    Dispose(command, rdr);
+                }
+            }
+        }
+
+        public static List<KeyValuePair<TKey, TValue>> GetKeyValuePairs<TKey, TValue>(IDbCommand cmd)
+        {
+            IDataReader rdr = null;
+            try
+            {
+                if (cmd.Connection.State != ConnectionState.Open)
+                    cmd.Connection.Open();
+                var keyValPairs = new List<KeyValuePair<TKey, TValue>>();
+                using (rdr = cmd.ExecuteReader())
+                {
+                    while (rdr.Read())
+                    {
+                        keyValPairs.Add(new KeyValuePair<TKey, TValue>(rdr.GetValue(0).GetCastedObject<TKey>(),
+                            rdr.GetValue(1).GetCastedObject<TValue>()));
+                    }
+                }
+                return keyValPairs;
+
+            }
+            finally
+            {
+                Dispose(cmd, rdr);
+
+            }
+        }
+
+        public static T ExecuteScalar<T>(IDbCommand cmd, bool dispose = true)
+        {
+            try
+            {
+                if (cmd.Connection.State != ConnectionState.Open)
+                    cmd.Connection.Open();
+                return ConvertTo<T>(cmd.ExecuteScalar());
+            }
+            finally
+            {
+                if (dispose)
+                {
+                    Dispose(cmd);
+                }
+            }
+
+        }
+
+        public static int ExecuteNonQuery(IDbCommand cmd)
+        {
+            try
+            {
+                if (cmd.Connection.State != ConnectionState.Open)
+                    cmd.Connection.Open();
+                return cmd.ExecuteNonQuery();
+            }
+            finally
+            {
+                Dispose(cmd);
+            }
+        }
+
+        #region Privates
 
         private static List<PropertyInfo> GetOrderPropertyInfos(IEnumerable<string> columnNames,
-            List<PropertyInfo> propertyInfo)
+           List<PropertyInfo> propertyInfo)
         {
             var orderedPropertyInfos = new List<PropertyInfo>();
             foreach (var name in columnNames)
@@ -43,93 +172,6 @@ namespace NDbPortal
             return colunmName;
         }
 
-        /// <summary>
-        /// Gets the T Object from the command
-        /// </summary>
-        /// <param name="command">Command to be executed</param>
-        /// <returns>an instance of T</returns>
-        public static T GetObject<T>(IDbCommand command)
-        {
-            IDataReader rdr = null;
-            try
-            {
-                if (command.Connection.State != ConnectionState.Open)
-                    command.Connection.Open();
-                var hasRows = false;
-                T t = default(T);
-                using (rdr = command.ExecuteReader())
-                {
-                    while (rdr.Read())
-                    {
-                        hasRows = true;
-                        t = GetSingleObject<T>(rdr);
-                        rdr.Dispose();
-                        break;
-                    }
-
-                }
-                return hasRows ? t : default(T);
-            }
-            finally
-            {
-                command.Connection.Close();
-                command.Connection.Dispose();
-                command.Dispose();
-                rdr?.Dispose();
-            }
-        }
-
-        private static T GetSingleObject<T>(IDataRecord rdr)
-        {
-            if (typeof(T).GetTypeInfo().IsValueType)
-            {
-                return rdr.GetValue(0).GetCastedObject<T>();
-            }
-            var t = Activator.CreateInstance<T>();
-
-
-            var columnNames = Enumerable.Range(0, rdr.FieldCount).Select(rdr.GetName).ToList();
-            var properties = typeof(T).GetProperties();
-            var orderedPropertyInfos = GetOrderPropertyInfos(columnNames, properties.ToList());
-
-            if (columnNames.Count != orderedPropertyInfos.Count)
-                throw new Exception(
-                    "Not all columns are mapped to object properties. Please Make sure that all the columns have thier respective properties or that they follow the specified naming conventions or that their names are not misspelled.");
-            SetProperties(rdr, t, columnNames, orderedPropertyInfos);
-            return t;
-        }
-
-        /// <summary>
-        /// Gets a list of T Objects from the command
-        /// </summary>
-        /// <param name="command">Command to be executed</param>
-        /// <returns>List of instance of T objects</returns>
-        public static IEnumerable<T> GetObjects<T>(IDbCommand command)
-        {
-            IDataReader rdr = null;
-            try
-            {
-                var tList = new List<T>();
-                if (command.Connection.State != ConnectionState.Open)
-                    command.Connection.Open();
-                using (rdr = command.ExecuteReader())
-                {
-                    while (rdr.Read())
-                    {
-                        tList.Add(GetSingleObject<T>(rdr));
-                    }
-                }
-                return tList;
-            }
-            finally
-            {
-                command.Connection.Close();
-                command.Connection.Dispose();
-                command.Dispose();
-                rdr?.Dispose();
-            }
-        }
-
         private static void SetProperties<T>(IDataRecord rdrRow, T t, List<string> columnNames,
             List<PropertyInfo> orderedPropertyInfos)
         {
@@ -147,7 +189,7 @@ namespace NDbPortal
         private static T ConvertTo<T>(object value)
         {
             var type = typeof(T);
-            return (T) ConvertToSafeValue(value, type);
+            return (T)ConvertToSafeValue(value, type);
 
         }
 
@@ -170,71 +212,39 @@ namespace NDbPortal
             var safeValue = (val == DBNull.Value) ? null : Convert.ChangeType(val, propType);
             if (safeValue != null)
             {
-                return (T) safeValue;
+                return (T)safeValue;
             }
             return default(T);
         }
 
-        public static List<KeyValuePair<TKey, TValue>> GetKeyValuePairs<TKey, TValue>(IDbCommand cmd)
+        private static T GetSingleObject<T>(IDataRecord rdr)
         {
-            IDataReader rdr = null;
-            try
+            if (typeof(T).GetTypeInfo().IsValueType)
             {
-                if (cmd.Connection.State != ConnectionState.Open)
-                    cmd.Connection.Open();
-                var keyValPairs = new List<KeyValuePair<TKey, TValue>>();
-                using (rdr = cmd.ExecuteReader())
-                {
-                    while (rdr.Read())
-                    {
-                        keyValPairs.Add(new KeyValuePair<TKey, TValue>(rdr.GetValue(0).GetCastedObject<TKey>(),
-                            rdr.GetValue(1).GetCastedObject<TValue>()));
-                    }
-                }
-                return keyValPairs;
+                return rdr.GetValue(0).GetCastedObject<T>();
+            }
+            var t = Activator.CreateInstance<T>();
 
-            }
-            finally
-            {
-                cmd.Connection.Close();
-                cmd.Connection.Dispose();
-                cmd.Dispose();
-                rdr?.Dispose();
-            }
+
+            var columnNames = Enumerable.Range(0, rdr.FieldCount).Select(rdr.GetName).ToList();
+            var properties = typeof(T).GetProperties();
+            var orderedPropertyInfos = GetOrderPropertyInfos(columnNames, properties.ToList());
+
+            if (columnNames.Count != orderedPropertyInfos.Count)
+                throw new Exception(
+                    "Not all columns are mapped to object properties. Please Make sure that all the columns have thier respective properties or that they follow the specified naming conventions or that their names are not misspelled.");
+            SetProperties(rdr, t, columnNames, orderedPropertyInfos);
+            return t;
         }
 
-        public static T ExecuteScalar<T>(IDbCommand cmd)
+        private static void Dispose(IDbCommand cmd, IDataReader rdr = null)
         {
-            try
-            {
-                if (cmd.Connection.State != ConnectionState.Open)
-                    cmd.Connection.Open();
-                return ConvertTo<T>(cmd.ExecuteScalar());
-            }
-            finally
-            {
-                cmd.Connection.Close();
-                cmd.Connection.Dispose();
-                cmd.Dispose();
-            }
-            
+            cmd.Connection.Close();
+            cmd.Connection.Dispose();
+            cmd.Dispose();
+            rdr?.Dispose();
         }
 
-        public static void ExecuteNonQuery(IDbCommand cmd)
-        {
-            try
-            {
-                if (cmd.Connection.State != ConnectionState.Open)
-                    cmd.Connection.Open();
-                cmd.ExecuteNonQuery();
-            }
-            finally
-            {
-                cmd.Connection.Close();
-                cmd.Connection.Dispose();
-                cmd.Dispose();
-            }
-        }
-
+        #endregion
     }
 }
