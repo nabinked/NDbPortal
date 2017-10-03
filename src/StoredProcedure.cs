@@ -24,11 +24,13 @@ namespace NDbPortal
         /// <param name="prms">parameters object</param>
         public void Invoke(string name, object prms = null)
         {
-            using (var cmd = _commandFactory.Create(name, prms, true))
+            var fName = Utils.GetSchemaQualifiedName(name, _dbOptions.DefaultSchema);
+            using (var cmd = _commandFactory.Create(fName, prms, true))
             {
                 Mapper.ExecuteNonQuery(cmd);
             }
         }
+
 
         public T Get<T>(object prm = null)
         {
@@ -43,7 +45,8 @@ namespace NDbPortal
 
         public T Get<T>(string name, object prm = null)
         {
-            using (var cmd = _commandFactory.Create(name, prm, true))
+            var fName = Utils.GetSchemaQualifiedName(name, _dbOptions.DefaultSchema);
+            using (var cmd = _commandFactory.Create(fName, prm, true))
             {
                 return Mapper.GetObject<T>(cmd);
             }
@@ -56,7 +59,8 @@ namespace NDbPortal
 
         public IEnumerable<T> GetList<T>(string name, object prm = null)
         {
-            using (var cmd = _commandFactory.Create(name, prm, true))
+            var fName = Utils.GetSchemaQualifiedName(name, _dbOptions.DefaultSchema);
+            using (var cmd = _commandFactory.Create(fName, prm, true))
             {
                 return Mapper.GetObjects<T>(cmd);
             }
@@ -64,16 +68,16 @@ namespace NDbPortal
 
         public PagedList<T> GetPagedList<T>(long page, object prm = null) where T : class
         {
-            return GetPagedList<T>(GetTableInfo<T>().FullTableName, page , prm);
+            return GetPagedList<T>(GetTableInfo<T>().FullTableName, page, prm);
         }
 
         public PagedList<T> GetPagedList<T>(string name, long page, dynamic prm = null) where T : class
         {
 
-            var pageSize = _dbOptions.PagedListSize > 0 ? _dbOptions.PagedListSize : 10;
+            var pageSize = _dbOptions.PagedListSize;
             var offset = pageSize * page;
             PagedList<T> pagedList;
-            var sqlGenerator = new SqlGenerator(new TableInfo(name), _namingConvention);
+            var sqlGenerator = new SqlGenerator(name, _dbOptions.DefaultSchema, _namingConvention);
             string sql = sqlGenerator.GetStoredProcQuery(prm);
             sql = sql.AppendLimitOffset(pageSize, offset);
             using (var cmd = _commandFactory.Create(sql, prm))
@@ -107,7 +111,7 @@ namespace NDbPortal
         #region Privates
         private TableInfo GetTableInfo<T>()
         {
-            return new TableInfoBuilder<T>(_namingConvention)
+            return new TableInfoBuilder<T>(_namingConvention, _dbOptions)
                             .SetColumnInfos()
                             .SetPrimaryKey()
                             .SetTableName()

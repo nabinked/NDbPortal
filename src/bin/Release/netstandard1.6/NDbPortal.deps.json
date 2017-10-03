@@ -1,18 +1,18 @@
 {
   "runtimeTarget": {
     "name": ".NETStandard,Version=v1.6/",
-    "signature": "21bbe59bbc6d4fa2f29de7ee31afa28a7aae94d5"
+    "signature": "c2d3e5f56bff3c72a1f20bc34238be6a41438aa5"
   },
   "compilationOptions": {},
   "targets": {
     ".NETStandard,Version=v1.6": {},
     ".NETStandard,Version=v1.6/": {
-      "ndbportal/1.0.6": {
+      "ndbportal/1.0.21": {
         "dependencies": {
           "Microsoft.CSharp": "4.3.0",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "1.1.0",
           "Microsoft.Extensions.Options.ConfigurationExtensions": "1.1.1",
-          "NDbPortal.Names": "1.0.3",
+          "NDbPortal.Names": "1.0.6",
           "NETStandard.Library": "1.6.1",
           "Npgsql": "3.2.2",
           "System.Data.Common": "4.3.0",
@@ -135,16 +135,6 @@
           "System.Runtime.Extensions": "4.3.0",
           "System.Runtime.Handles": "4.3.0",
           "System.Runtime.InteropServices": "4.3.0"
-        }
-      },
-      "ndbportal.names/1.0.3": {
-        "dependencies": {
-          "NETStandard.Library": "1.6.1",
-          "System.Data.Common": "4.3.0",
-          "System.Dynamic.Runtime": "4.3.0"
-        },
-        "runtime": {
-          "lib/netstandard1.6/NDbPortal.Names.dll": {}
         }
       },
       "netstandard.library/1.6.1": {
@@ -1177,11 +1167,22 @@
         "runtime": {
           "lib/netstandard1.3/System.Xml.XDocument.dll": {}
         }
+      },
+      "ndbportal.names/1.0.6": {
+        "dependencies": {
+          "Microsoft.Extensions.Options": "1.1.1",
+          "NETStandard.Library": "1.6.1",
+          "System.Data.Common": "4.3.0",
+          "System.Dynamic.Runtime": "4.3.0"
+        },
+        "runtime": {
+          "NDbPortal.Names.dll": {}
+        }
       }
     }
   },
   "libraries": {
-    "ndbportal/1.0.6": {
+    "ndbportal/1.0.21": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -1269,13 +1270,6 @@
       "sha512": "sha512-Lw1/VwLH1yxz6SfFEjVRCN0pnflLEsWgnV4qsdJ512/HhTwnKXUG+zDQ4yTO3K/EJQemGoNaBHX5InISNKTzUQ==",
       "path": "microsoft.win32.registry/4.3.0",
       "hashPath": "microsoft.win32.registry.4.3.0.nupkg.sha512"
-    },
-    "ndbportal.names/1.0.3": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-j5uSBnBReR8vpH5/yKU8G4YJCEVqAJqWGNI/pldvJe+azEw+w96L5TYuX60U39gLlvJ9/Ov8+FEIb3hbreVrTA==",
-      "path": "ndbportal.names/1.0.3",
-      "hashPath": "ndbportal.names.1.0.3.nupkg.sha512"
     },
     "netstandard.library/1.6.1": {
       "type": "package",
@@ -1906,6 +1900,11 @@
       "sha512": "sha512-5zJ0XDxAIg8iy+t4aMnQAu0MqVbqyvfoUVl1yDV61xdo3Vth45oA2FoY4pPkxYAH5f8ixpmTqXeEIya95x0aCQ==",
       "path": "system.xml.xdocument/4.3.0",
       "hashPath": "system.xml.xdocument.4.3.0.nupkg.sha512"
+    },
+    "ndbportal.names/1.0.6": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
     }
   }
 }

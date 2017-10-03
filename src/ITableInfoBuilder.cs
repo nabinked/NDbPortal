@@ -1,4 +1,6 @@
-﻿namespace NDbPortal
+﻿using NDbPortal.Names;
+
+namespace NDbPortal
 {
     public interface ITableInfoBuilder<T>
     {

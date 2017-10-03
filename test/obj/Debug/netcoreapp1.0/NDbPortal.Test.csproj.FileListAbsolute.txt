@@ -12,3 +12,5 @@ C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\test\bin\Debug\netcoreapp1.0\ND
 C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\test\bin\Debug\netcoreapp1.0\NDbPortal.pdb
 C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\test\obj\Debug\netcoreapp1.0\NDbPortal.Test.dll
 C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\test\obj\Debug\netcoreapp1.0\NDbPortal.Test.pdb
+C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\test\bin\Debug\netcoreapp1.0\NDbPortal.Names.dll
+C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\test\bin\Debug\netcoreapp1.0\NDbPortal.Names.pdb

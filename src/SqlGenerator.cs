@@ -7,15 +7,31 @@ namespace NDbPortal
 {
     public class SqlGenerator
     {
-        private readonly TableInfo _tableInfo;
-        private readonly INamingConvention _namingConvention;
+        private TableInfo _tableInfo;
+        private INamingConvention _namingConvention;
+        private ParamParser _paramParser;
 
-        private string WhereId => $" WHERE {_tableInfo.PrimaryKey} = @{_tableInfo.PrimaryKey}";
+        private string WhereId => $" WHERE {_tableInfo.PrimaryKey} = {_paramParser.AddParamIdentifier(_tableInfo.PrimaryKey)}";
 
         public SqlGenerator(TableInfo tableInfo, INamingConvention namingConvention)
         {
+            Initialize(tableInfo, namingConvention);
+        }
+
+        public SqlGenerator(string tableName, string schema, INamingConvention namingConvention)
+        {
+            var tableInfo = new TableInfo(tableName, schema);
+            tableInfo.FullTableName = Utils.GetSchemaQualifiedName(tableInfo.TableName,tableInfo.Schema);
+            Initialize(tableInfo, namingConvention);
+
+        }
+
+        private void Initialize(TableInfo tableInfo, INamingConvention namingConvention)
+        {
             _tableInfo = tableInfo;
             _namingConvention = namingConvention;
+            _paramParser = new ParamParser(namingConvention);
+
         }
 
         #region Public Members
@@ -48,10 +64,9 @@ namespace NDbPortal
         /// <returns></returns>
         public string GetInsertQuery()
         {
-            var columnNameList = _tableInfo.InsertUpdateColumns.Select(x => x.ColumnName);
-            var parameterNames = string.Join(", ", columnNameList.Select(insertColumName => $"@{insertColumName.Replace("_", "")}").ToList());
+            var columnNameList = _tableInfo.UpsertableColumns.Select(x => x.ColumnName);
             var sql =
-                $"INSERT INTO {_tableInfo.FullTableName} ({_tableInfo.InsertUpdateColumnsString}) VALUES ({parameterNames})";
+                $"INSERT INTO {_tableInfo.FullTableName} ({_tableInfo.UpsertableColumnsString}) VALUES ({_paramParser.ConvertToParamNames(columnNameList)})";
             return sql + $" RETURNING {_tableInfo.PrimaryKey};";
         }
 
@@ -67,7 +82,7 @@ namespace NDbPortal
         public string GetUpdateQuery()
         {
             var columnNameList = _tableInfo.Columns.Select(x => x.ColumnName).ToList();
-            var setString = GetSetStringForUpdateQuery(columnNameList);
+            var setString = _paramParser.GetSetStringForUpdateQuery(columnNameList);
             var sql = $"UPDATE {_tableInfo.FullTableName} SET {setString} {WhereId};";
             return sql;
 
@@ -87,50 +102,15 @@ namespace NDbPortal
         public string GetStoredProcQuery(object prms = null)
         {
 
-            return $"SELECT * FROM {_tableInfo.FullTableName}({GetStoredProcParamsNameValuesOnlySql(prms)})";
+            return $"SELECT * FROM {_tableInfo.FullTableName}({_paramParser.GetStoredProcParamsNameValuesOnlySql(prms)})";
         }
 
         public string GetStoredProcCountQuery(object prms = null)
         {
-            return $"SELECT COUNT(*) FROM {_tableInfo.FullTableName}({GetStoredProcParamsNameValuesOnlySql(prms)});";
+            return $"SELECT COUNT(*) FROM {_tableInfo.FullTableName}({_paramParser.GetStoredProcParamsNameValuesOnlySql(prms)});";
         }
         #endregion
-
-
-        #region Private Members
-
-        private string GetStoredProcParamsNameValuesOnlySql(object obj)
-        {
-            var paramsSql = string.Empty;
-            if (obj != null)
-            {
-                var properties = obj.GetType().GetProperties().OrderBy(x => x.Name);
-                var paramNameValues = new List<string>();
-                foreach (var info in properties)
-                {
-                    paramNameValues.Add($"{_namingConvention.ConvertToDbName(info.Name)} => @{info.Name}");
-                }
-                paramsSql = string.Join(",", paramNameValues);
-            }
-
-            return paramsSql;
-        }
-
-        private string GetSetStringForUpdateQuery(IList<string> updatableColumnNames)
-        {
-            var setString = "";
-            for (int i = 0; i < updatableColumnNames.Count; i++)
-            {
-                var columnName = updatableColumnNames[i];
-                setString += columnName + " = @" + columnName.Replace("_", "");
-                if (i != updatableColumnNames.Count - 1)
-                {
-                    setString += " ,";
-                }
-            }
-            return setString;
-        }
-        #endregion
+        
 
     }
 

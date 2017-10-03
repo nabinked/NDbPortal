@@ -15,11 +15,11 @@ namespace NDbPortal.Test
                 DbNamingConvention = DbEnums.NamingConventions.UnderScoreCase,
                 PocoNamingConvention = DbEnums.NamingConventions.PascalCase
             };
-            var storedProcName = "core.test";
-            var sqlGenerator = new SqlGenerator(new TableInfo(storedProcName), namingConvention);
-            var s = sqlGenerator.GetStoredProcQuery(new { param1 = 1, param2 = "two" });
-            Assert.IsTrue(s.Contains("param1 => 1"));
-            Assert.IsTrue(s.Contains("param2 => \"two\""));
+            //var storedProcName = "test";
+            //var sqlGenerator = new SqlGenerator(new TableInfo(storedProcName), namingConvention);
+            //var s = sqlGenerator.GetStoredProcQuery(new { param1 = 1, param2 = "two" });
+            //Assert.IsTrue(s.Contains("param1 => 1"));
+            //Assert.IsTrue(s.Contains("param2 => \"two\""));
         }
     }
 }

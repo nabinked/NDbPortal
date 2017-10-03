@@ -1,133 +1,65 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Text;
 using NDbPortal.Names;
 
 namespace NDbPortal
 {
-    public class CommandBuilder
+    public class CommandBuilder : ICommandBuilder
     {
-        private readonly IDbCommand _dbCommand;
-        private readonly NamingConvention _namingConvention;
+        private readonly INamingConvention _namingConvention;
+        private readonly ParamParser _paramParser;
 
-        public CommandBuilder(IDbCommand dbCommand, NamingConvention namingConvention = null)
+        public CommandBuilder(INamingConvention namingConvention)
         {
-            _dbCommand = dbCommand;
-            _dbCommand.Parameters.Clear();
-            this._namingConvention = namingConvention ?? new NamingConvention()
-            {
-                DbNamingConvention = DbEnums.NamingConventions.UnderScoreCase,
-                PocoNamingConvention = DbEnums.NamingConventions.PascalCase
-            };
+            _namingConvention = namingConvention;
+            _paramParser = new ParamParser(namingConvention);
         }
 
         #region Public Behaviours
 
-        public IDbCommand GetFinalCommand(string sql, object parameters = null)
+        public IDbCommand GetFinalCommand(IDbCommand cmd, string sql, object parameters = null)
         {
-            return GetCommand(sql, parameters);
+            return GetCommand(cmd, sql, parameters);
         }
 
         #endregion
 
-
         #region Private Behaviours
-        IDbCommand GetCommand(string sql, object parameters = null)
+        IDbCommand GetCommand(IDbCommand dbCommand, string sql, object parameters = null)
         {
-            _dbCommand.CommandText = sql;
+            dbCommand.Parameters.Clear();
+            dbCommand.CommandText = sql;
             if (parameters != null)
             {
-                if (_dbCommand.CommandType == CommandType.StoredProcedure)
+                if (dbCommand.CommandType == CommandType.StoredProcedure)
                 {
                     foreach (string propName in ReflectionUtilities.GetProperties(parameters))
                     {
-                        _dbCommand.Parameters.Add(GetParam(_dbCommand, $"@{_namingConvention.ConvertToDbName(propName)}", ReflectionUtilities.GetPropertyValue(propName, parameters)));
+                        dbCommand.Parameters.Add(GetParam(dbCommand, _namingConvention.ConvertToDbName(propName), ReflectionUtilities.GetPropertyValue(propName, parameters)));
                     }
                 }
                 else
                 {
-                    var sqlParams = GeSqlParams(sql);
+                    var sqlParams = _paramParser.GeSqlParams(sql);
                     foreach (var sqlParam in sqlParams)
                     {
-                        var paramValue = ReflectionUtilities.GetPropertyValue(CleanParameter(sqlParam), parameters) ?? DBNull.Value;
-                        var parameter = GetParam(_dbCommand, sqlParam, paramValue);
-                        _dbCommand.Parameters.Add(parameter);
+                        var cleanParam = _paramParser.CleanParameter(sqlParam);
+                        var paramValue = ReflectionUtilities.GetPropertyValue(_namingConvention.ConvertToPocoName(cleanParam), parameters) ?? DBNull.Value;
+                        var parameter = GetParam(dbCommand, cleanParam, paramValue);
+                        dbCommand.Parameters.Add(parameter);
                     }
                 }
 
             }
-            return _dbCommand;
+            return dbCommand;
         }
         IDbDataParameter GetParam(IDbCommand dbCommand, string paramName, object paramValue)
         {
             var param = dbCommand.CreateParameter();
-            param.ParameterName = paramName;
+            param.ParameterName = _paramParser.AddParamIdentifier(paramName);
             param.Value = paramValue;
-            //param.DbType = TypeToDbTypeMap.GetDbType(paramValue.GetType());
             return param;
         }
-
-        IEnumerable<string> GeSqlParams(string sql)
-        {
-            var sqlParams = new List<string>();
-            var paramStartIndex = 0;
-            var paramFound = false;
-            for (var i = 0; i < sql.Length; i++)
-            {
-                var c = sql[i];
-
-                switch (c)
-                {
-                    case '?':
-                    case '@':
-                        paramFound = true;
-                        paramStartIndex = i;
-                        break;
-                }
-                var endOfSql = i == sql.Length - 1;
-                if ((char.IsWhiteSpace(c) || c.Equals(',') || endOfSql) && paramFound)
-                {
-                    paramFound = false;
-                    var paramStopIndex = endOfSql ? i + 1 : i;
-                    var param = RemoveAll(sql.Substring(paramStartIndex, paramStopIndex - paramStartIndex), (new[] { ";", ")", "," }));
-                    if (!sqlParams.Contains(param))
-                    {
-                        sqlParams.Add(param);
-                    }
-                }
-            }
-            return sqlParams;
-        }
-
-        static string RemoveAll(string str, string[] stringToReplace)
-        {
-            var sb = new StringBuilder(str);
-
-            foreach (var s in stringToReplace)
-            {
-                if (string.IsNullOrEmpty(s)) continue;
-                sb.Replace(s, "");
-            }
-
-            return sb.ToString();
-        }
-
-        static string CleanParameter(string name)
-        {
-            if (!string.IsNullOrEmpty(name))
-            {
-                switch (name[0])
-                {
-                    case '@':
-                    case '?':
-                        return name.Substring(1).Trim();
-                }
-            }
-            return name;
-
-        }
-
         #endregion
     }
 }

@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>NDbPortal</id>
+    <version>1.0.25</version>
+    <authors>Nabin Kakri Thapa</authors>
+    <owners>Nabin Kakri Thapa</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Data Access Layer for dot net core</description>
+    <copyright>Nabin Karki Thapa</copyright>
+    <dependencies>
+      <group targetFramework=".NETStandard1.6">
+        <dependency id="System.Reflection.Extensions" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="Npgsql" version="3.2.2" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="1.1.0" exclude="Build,Analyzers" />
+        <dependency id="NETStandard.Library" version="1.6.1" exclude="Build,Analyzers" />
+        <dependency id="System.Reflection.TypeExtensions" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Options.ConfigurationExtensions" version="1.1.1" exclude="Build,Analyzers" />
+        <dependency id="System.Data.Common" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="NDbPortal.Names" version="1.0.8" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.CSharp" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.Dynamic.Runtime" version="4.3.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\src\bin\Debug\netstandard1.6\NDbPortal.dll" target="lib\netstandard1.6\NDbPortal.dll" />
+  </files>
+</package>

@@ -5,3 +5,5 @@ C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\src\obj\Release\netstandard1.6\
 C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\src\obj\Release\netstandard1.6\NDbPortal.AssemblyInfo.cs
 C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\src\obj\Release\netstandard1.6\NDbPortal.dll
 C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\src\obj\Release\netstandard1.6\NDbPortal.pdb
+C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\src\bin\Release\netstandard1.6\NDbPortal.Names.dll
+C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\src\bin\Release\netstandard1.6\NDbPortal.Names.pdb

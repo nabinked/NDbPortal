@@ -24,6 +24,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\src\bin\Debug\netstandard1.6\NDbPortal.dll" target="lib\netstandard1.6\NDbPortal.dll" />
+    <file src="C:\Users\nabin\OneDrive\MyRepositories\NDbPortal\src\bin\Release\netstandard1.6\NDbPortal.dll" target="lib\netstandard1.6\NDbPortal.dll" />
   </files>
 </package>

@@ -5,10 +5,12 @@ namespace NDbPortal
     public class CommandFactory : ICommandFactory
     {
         private readonly IConnectionFactory _connectionFactory;
+        private readonly ICommandBuilder _cmdBuilder;
 
-        public CommandFactory(IConnectionFactory connectionFactory)
+        public CommandFactory(IConnectionFactory connectionFactory, ICommandBuilder cmdBuilder)
         {
             this._connectionFactory = connectionFactory;
+            _cmdBuilder = cmdBuilder;
         }
 
         public CommandFactory(string connectionString)
@@ -23,14 +25,12 @@ namespace NDbPortal
             {
                 cmd.CommandType = CommandType.StoredProcedure;
             }
-            var cmdTextParam = new CommandBuilder(cmd);
-            return cmdTextParam.GetFinalCommand(commandText, parameters);
+            return _cmdBuilder.GetFinalCommand(cmd, commandText, parameters);
         }
 
         public IDbCommand Create(IDbCommand cmd, string commandText, object parameters = null)
         {
-            var cmdTextParam = new CommandBuilder(cmd);
-            return cmdTextParam.GetFinalCommand(commandText, parameters);
+            return _cmdBuilder.GetFinalCommand(cmd, commandText, parameters);
 
         }
     }

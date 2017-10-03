@@ -11,51 +11,58 @@ namespace NDbPortal
 {
     public class Repository<T> : IRepository<T> where T : class, new()
     {
-        public ITableInfoBuilder<T> TableInfoBuilder { get; set; }
+        private readonly IConnectionFactory _connectionFactory;
         private readonly ICommandFactory _commandFactory;
-        private short PageSize { get; set; }
-        public INamingConvention NamingConvention { get; set; }
+        private readonly INamingConvention _namingConvention;
+        private readonly ICommandBuilder _cmdBuilder;
+        private readonly DbOptions _dbOptions;
+        private readonly SqlGenerator _sqlGenerator;
+        private readonly short _pageSize;
 
-        public Repository(ICommandFactory commandFactory, INamingConvention namingConvention, IOptions<DbOptions> dbOptions)
+
+        public Repository(IConnectionFactory connectionFactory, ICommandFactory commandFactory,
+                            INamingConvention namingConvention, IOptions<DbOptions> dbOptions,
+                            ICommandBuilder cmdBuilder)
         {
-            NamingConvention = namingConvention ?? new NamingConvention()
-            {
-                DbNamingConvention = DbEnums.NamingConventions.UnderScoreCase,
-                PocoNamingConvention = DbEnums.NamingConventions.PascalCase
-            };
+            _namingConvention = namingConvention;
+            _cmdBuilder = cmdBuilder;
+            _dbOptions = dbOptions.Value;
+            _connectionFactory = connectionFactory;
             _commandFactory = commandFactory;
-            TableInfoBuilder = new TableInfoBuilder<T>(NamingConvention)
+            var tableInfoBuilder = GetTableInfoBuilder();
+            _sqlGenerator = new SqlGenerator(tableInfoBuilder.Build(), namingConvention);
+            _pageSize = (short)(dbOptions.Value.PagedListSize > 0 ? dbOptions.Value.PagedListSize : 10);
+        }
+
+        private ITableInfoBuilder<T> GetTableInfoBuilder()
+        {
+            return new TableInfoBuilder<T>(_namingConvention, _dbOptions)
                 .SetTableName()
                 .SetPrimaryKey()
                 .SetColumnInfos();
-            SqlGenerator = new SqlGenerator(TableInfoBuilder.Build(), namingConvention);
-            PageSize = (short)(dbOptions.Value.PagedListSize > 0 ? dbOptions.Value.PagedListSize : 10);
         }
 
-        public SqlGenerator SqlGenerator { get; set; }
 
         public T Get(long id)
         {
-            using (var cmd = _commandFactory.Create(SqlGenerator.GetSelectByIdQuery(), new { id }))
+            using (var cmd = _commandFactory.Create(_sqlGenerator.GetSelectByIdQuery(), new { id }))
             {
                 return Mapper.GetObject<T>(cmd);
             }
-
         }
 
         public IEnumerable<T> GetAll()
         {
-            using (var cmd = _commandFactory.Create(SqlGenerator.GetSelectAllQuery()))
+            using (var cmd = _commandFactory.Create(_sqlGenerator.GetSelectAllQuery()))
             {
                 return Mapper.GetObjects<T>(cmd);
-
             }
 
         }
 
         public long Add(T obj)
         {
-            using (var cmd = _commandFactory.Create(SqlGenerator.GetInsertQuery(), obj))
+            using (var cmd = _commandFactory.Create(_sqlGenerator.GetInsertQuery(), obj))
             {
                 return Mapper.GetObject<long>(cmd);
 
@@ -64,40 +71,45 @@ namespace NDbPortal
 
         public bool AddRange(IEnumerable<T> entities)
         {
-            foreach (T entity in entities)
+            using (var conn = _connectionFactory.Create())
             {
-                Add(entity);
+                conn.Open();
+                var transaction = conn.BeginTransaction();
+                var cmd = conn.CreateCommand();
+                foreach (T entity in entities)
+                {
+                    cmd = _cmdBuilder.GetFinalCommand(cmd, _sqlGenerator.GetInsertQuery(), entity);
+                    Mapper.GetObject<long>(cmd, false);
+                }
+                transaction.Commit();
             }
             return true;
         }
 
         public long Update(T obj)
         {
-            using (var cmd = _commandFactory.Create(SqlGenerator.GetUpdateQuery(), obj))
+            using (var cmd = _commandFactory.Create(_sqlGenerator.GetUpdateQuery(), obj))
             {
                 return Mapper.GetObject<long>(cmd);
-
             }
         }
 
         public bool Remove(long id)
         {
-            using (var cmd = _commandFactory.Create(SqlGenerator.GetDeleteQuery(), new { id }))
+            using (var cmd = _commandFactory.Create(_sqlGenerator.GetDeleteQuery(), new { id }))
             {
                 return Mapper.ExecuteNonQuery(cmd) > 0;
-
             }
         }
 
         public T Find(Expression<Func<T, bool>> expression)
         {
             var propertyName = ReflectionUtilities.GetPropertyNameFromExpression(expression);
-            var columnName = NamingConvention.ConvertToDbName(propertyName);
             dynamic obj = new ExpandoObject();
             var paramObj = (IDictionary<string, object>)obj;
-            paramObj[columnName] = ReflectionUtilities.GetValueFromExpression(expression);
-
-            using (var cmd = _commandFactory.Create(SqlGenerator.GetSelectByColumnNameQuery(columnName), obj))
+            paramObj[propertyName] = ReflectionUtilities.GetValueFromExpression(expression);
+            var columnName = _namingConvention.ConvertToDbName(propertyName);
+            using (var cmd = _commandFactory.Create(_sqlGenerator.GetSelectByColumnNameQuery(columnName), obj))
             {
                 return Mapper.GetObject<T>(cmd);
             }
@@ -107,11 +119,11 @@ namespace NDbPortal
         public IEnumerable<T> FindAll(Expression<Func<T, bool>> expression)
         {
             var propertyName = ReflectionUtilities.GetPropertyNameFromExpression(expression);
-            var columnName = NamingConvention.ConvertToDbName(propertyName);
+            var columnName = _namingConvention.ConvertToDbName(propertyName);
             dynamic obj = new ExpandoObject();
             var paramObj = (IDictionary<string, object>)obj;
-            paramObj[columnName] = ReflectionUtilities.GetValueFromExpression(expression);
-            using (var cmd = _commandFactory.Create(SqlGenerator.GetSelectByColumnNameQuery(columnName), obj))
+            paramObj[propertyName] = ReflectionUtilities.GetValueFromExpression(expression);
+            using (var cmd = _commandFactory.Create(_sqlGenerator.GetSelectByColumnNameQuery(columnName), obj))
             {
                 return Mapper.GetObjects<T>(cmd);
             }
@@ -119,13 +131,13 @@ namespace NDbPortal
 
         public PagedList<T> GetPagedList(long page, string orderBy = "id")
         {
-            var sql = SqlGenerator.GetPagedQuery(orderBy);
+            var sql = _sqlGenerator.GetPagedQuery(orderBy);
             PagedList<T> pagedList;
-            using (var cmd = _commandFactory.Create(sql, new { limit = PageSize, offset = GetOffset(page) }))
+            using (var cmd = _commandFactory.Create(sql, new { limit = _pageSize, offset = GetOffset(page) }))
             {
                 IList<T> list = Mapper.GetObjects<T>(cmd, false).ToList();
-                cmd.CommandText = SqlGenerator.GetCountQuery();
-                pagedList = new PagedList<T>(Mapper.ExecuteScalar<long>(cmd), page, PageSize)
+                cmd.CommandText = _sqlGenerator.GetCountQuery();
+                pagedList = new PagedList<T>(Mapper.ExecuteScalar<long>(cmd), page, _pageSize)
                 {
                     List = list
                 };
@@ -138,7 +150,7 @@ namespace NDbPortal
 
         private long GetOffset(long page)
         {
-            return page * PageSize;
+            return page * _pageSize;
         }
 
         /// <summary>
