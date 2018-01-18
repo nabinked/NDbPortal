@@ -1,9 +1,0 @@
-C:\Users\nabin\OneDrive\Dev\Repositories\NDbPortal\src\bin\Debug\netstandard2.0\NDbPortal.deps.json
-C:\Users\nabin\OneDrive\Dev\Repositories\NDbPortal\src\bin\Debug\netstandard2.0\NDbPortal.dll
-C:\Users\nabin\OneDrive\Dev\Repositories\NDbPortal\src\bin\Debug\netstandard2.0\NDbPortal.pdb
-C:\Users\nabin\OneDrive\Dev\Repositories\NDbPortal\src\obj\Debug\netstandard2.0\NDbPortal.csproj.CoreCompileInputs.cache
-C:\Users\nabin\OneDrive\Dev\Repositories\NDbPortal\src\obj\Debug\netstandard2.0\NDbPortal.AssemblyInfoInputs.cache
-C:\Users\nabin\OneDrive\Dev\Repositories\NDbPortal\src\obj\Debug\netstandard2.0\NDbPortal.AssemblyInfo.cs
-C:\Users\nabin\OneDrive\Dev\Repositories\NDbPortal\src\obj\Debug\netstandard2.0\NDbPortal.dll
-C:\Users\nabin\OneDrive\Dev\Repositories\NDbPortal\src\obj\Debug\netstandard2.0\NDbPortal.pdb
-C:\Users\nabin\OneDrive\Dev\Repositories\NDbPortal\src\obj\Debug\netstandard2.0\NDbPortal.csprojResolveAssemblyReference.cache
