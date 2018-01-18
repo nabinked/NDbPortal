@@ -1,13 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.12
+VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDbPortal", "src\NDbPortal.csproj", "{D6AC79FC-D034-40FE-BA56-EF61E6D8B91E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDbPortal.Test", "test\NDbPortal.Test.csproj", "{D2350706-B860-428F-B456-397D4A8A860B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDbPortal.Names", "..\NDbPortal.Names\NDbPortal.Names.csproj", "{6349C366-F6B0-41FF-9DE1-121E4356AE8E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{D3946CA9-1483-4D5B-A364-7074989881CB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDbPortal.Sample.Web", "sample\NDbPortal.Sample.Web\NDbPortal.Sample.Web.csproj", "{2A28DD1E-6BB9-4130-84B9-627C5052E324}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,8 +31,18 @@ Global
 		{6349C366-F6B0-41FF-9DE1-121E4356AE8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6349C366-F6B0-41FF-9DE1-121E4356AE8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6349C366-F6B0-41FF-9DE1-121E4356AE8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A28DD1E-6BB9-4130-84B9-627C5052E324}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A28DD1E-6BB9-4130-84B9-627C5052E324}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A28DD1E-6BB9-4130-84B9-627C5052E324}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A28DD1E-6BB9-4130-84B9-627C5052E324}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2A28DD1E-6BB9-4130-84B9-627C5052E324} = {D3946CA9-1483-4D5B-A364-7074989881CB}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7E123272-D2B8-4E3F-B5AB-F0F0164D4651}
 	EndGlobalSection
 EndGlobal
