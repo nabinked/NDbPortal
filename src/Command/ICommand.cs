@@ -2,7 +2,7 @@
 
 namespace NDbPortal.Command
 {
-    interface ICommand<T> where T : class
+    interface ICommand<in T> where T : class
     {
         /// <summary>
         /// Adds an entity
@@ -27,7 +27,7 @@ namespace NDbPortal.Command
         /// <summary>
         /// Updates an entity
         /// </summary>
-        /// <param name="obj">the updated entity</param>
+        /// <param name="entities"></param>
         /// <returns>no. of records affected</returns>
         long UpdateRange(IEnumerable<T> entities);
 
@@ -38,5 +38,18 @@ namespace NDbPortal.Command
         /// <param name="id">id of the entity</param>
         /// <returns></returns>
         bool Remove(long id);
+
+        /// <summary>
+        /// Experimental method that updates entity if exists already otherwise creates a new one.
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        long Upsert(T t);
+
+        /// <summary>
+        /// Begins a transaction
+        /// </summary>
+        void BeginTransaction();
+
     }
 }

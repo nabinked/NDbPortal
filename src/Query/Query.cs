@@ -3,26 +3,24 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using Microsoft.Extensions.Options;
 using NDbPortal.Names;
 
-namespace NDbPortal
+namespace NDbPortal.Query
 {
-    public class Repository<T> : IRepository<T> where T : class, new()
+    class Query<T> : IQuery<T> where T : class
     {
-        private readonly IConnectionFactory _connectionFactory;
         private readonly ICommandFactory _commandFactory;
         private readonly INamingConvention _namingConvention;
-        private readonly ICommandBuilder _cmdBuilder;
+        private ICommandBuilder _cmdBuilder;
         private readonly DbOptions _dbOptions;
+        private IConnectionFactory _connectionFactory;
         private readonly SqlGenerator _sqlGenerator;
         private readonly short _pageSize;
 
-
-        public Repository(IConnectionFactory connectionFactory, ICommandFactory commandFactory,
-                            INamingConvention namingConvention, IOptions<DbOptions> dbOptions,
-                            ICommandBuilder cmdBuilder)
+        public Query(IConnectionFactory connectionFactory, ICommandFactory commandFactory,
+            INamingConvention namingConvention, IOptions<DbOptions> dbOptions,
+            ICommandBuilder cmdBuilder)
         {
             _namingConvention = namingConvention;
             _cmdBuilder = cmdBuilder;
@@ -33,16 +31,6 @@ namespace NDbPortal
             _sqlGenerator = new SqlGenerator(tableInfoBuilder.Build(), namingConvention);
             _pageSize = (short)(dbOptions.Value.PagedListSize > 0 ? dbOptions.Value.PagedListSize : 10);
         }
-
-        private ITableInfoBuilder<T> GetTableInfoBuilder()
-        {
-            return new TableInfoBuilder<T>(_namingConvention, _dbOptions)
-                .SetTableName()
-                .SetPrimaryKey()
-                .SetColumnInfos();
-        }
-
-
         public T Get(long id)
         {
             using (var cmd = _commandFactory.Create(_sqlGenerator.GetSelectByIdQuery(), new { id }))
@@ -58,48 +46,6 @@ namespace NDbPortal
                 return Mapper.GetObjects<T>(cmd);
             }
 
-        }
-
-        public long Add(T obj)
-        {
-            using (var cmd = _commandFactory.Create(_sqlGenerator.GetInsertQuery(), obj))
-            {
-                return Mapper.GetObject<long>(cmd);
-
-            }
-        }
-
-        public bool AddRange(IEnumerable<T> entities)
-        {
-            using (var conn = _connectionFactory.Create())
-            {
-                conn.Open();
-                var transaction = conn.BeginTransaction();
-                var cmd = conn.CreateCommand();
-                foreach (T entity in entities)
-                {
-                    cmd = _cmdBuilder.GetFinalCommand(cmd, _sqlGenerator.GetInsertQuery(), entity);
-                    Mapper.GetObject<long>(cmd, false);
-                }
-                transaction.Commit();
-            }
-            return true;
-        }
-
-        public long Update(T obj)
-        {
-            using (var cmd = _commandFactory.Create(_sqlGenerator.GetUpdateQuery(), obj))
-            {
-                return Mapper.GetObject<long>(cmd);
-            }
-        }
-
-        public bool Remove(long id)
-        {
-            using (var cmd = _commandFactory.Create(_sqlGenerator.GetDeleteQuery(), new { id }))
-            {
-                return Mapper.ExecuteNonQuery(cmd) > 0;
-            }
         }
 
         public T Find(Expression<Func<T, bool>> expression)
@@ -153,44 +99,17 @@ namespace NDbPortal
             return page * _pageSize;
         }
 
-        /// <summary>
-        /// Checks if the object primary key has any value to determine if its new.
-        /// </summary>
-        /// <param name="t"></param>
-        /// <returns></returns>
-        public bool IsNew(T t)
+        private ITableInfoBuilder<T> GetTableInfoBuilder()
         {
-            var primaryKey = ReflectionUtilities.GetPrimaryKey(typeof(T).GetTypeInfo());
-            if (t.HasProperty(primaryKey))
-            {
-                var primaryKeyProperty =
-                    t.GetType()
-                        .GetProperties()
-                        .FirstOrDefault(x => x.Name.Equals(primaryKey, StringComparison.OrdinalIgnoreCase));
-                var primaryKeyValue = primaryKeyProperty.GetGetMethod().Invoke(t, null);
-
-                if (primaryKeyValue == null ||
-                    primaryKeyValue.Equals(Activator.CreateInstance(primaryKeyProperty.PropertyType)))
-                {
-                    return true;
-                }
-            }
-            return false;
+            return new TableInfoBuilder<T>(_namingConvention, _dbOptions)
+                .SetTableName()
+                .SetPrimaryKey()
+                .SetColumnInfos();
         }
 
-        public long Upsert(T obj)
-        {
-            if (IsNew(obj))
-            {
-                return Add(obj);
-            }
-            else
-            {
-                return Update(obj);
-            }
-        }
 
         #endregion
+
 
     }
 }
