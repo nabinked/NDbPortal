@@ -10,12 +10,13 @@ namespace NDbPortal.Command
         /// <param name="obj">the object to be added</param>
         /// <returns>the id of the object</returns>
         long Add(T obj);
+
         /// <summary>
         /// Adds a range of entities
         /// </summary>
         /// <param name="entities">Ienumrable of entities</param>
         /// <returns>boolean indicating the success status of the task</returns>
-        bool AddRange(IEnumerable<T> entities);
+        IList<long> AddRange(IEnumerable<T> entities);
 
         /// <summary>
         /// Updates an entity
@@ -50,6 +51,30 @@ namespace NDbPortal.Command
         /// Begins a transaction
         /// </summary>
         void BeginTransaction();
+        //
+        // Summary:
+        //     Commits the database transaction.
+        //
+        // Exceptions:
+        //   T:System.Exception:
+        //     An error occurred while trying to commit the transaction.
+        //
+        //   T:System.InvalidOperationException:
+        //     The transaction has already been committed or rolled back. -or- The connection
+        //     is broken.
+        void CommitTransaction();
+        //
+        // Summary:
+        //     Rolls back a transaction from a pending state.
+        //
+        // Exceptions:
+        //   T:System.Exception:
+        //     An error occurred while trying to commit the transaction.
+        //
+        //   T:System.InvalidOperationException:
+        //     The transaction has already been committed or rolled back. -or- The connection
+        //     is broken.
+        void RollbackTransaction();
 
     }
 }

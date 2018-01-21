@@ -1,7 +1,9 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using NDbPortal.Command;
 using NDbPortal.Names;
+using NDbPortal.Query;
 
 namespace NDbPortal
 {
@@ -24,7 +26,8 @@ namespace NDbPortal
             services.AddSingleton<IStoredProcedure, StoredProcedure>();
             services.AddSingleton<ICommandBuilder, CommandBuilder>();
             services.TryAdd(ServiceDescriptor.Scoped(typeof(ITableInfoBuilder<>), typeof(TableInfoBuilder<>)));
-            services.TryAdd(ServiceDescriptor.Scoped(typeof(IRepository<>), typeof(Repository<>)));
+            services.TryAdd(ServiceDescriptor.Scoped(typeof(ICommand<>), typeof(Command<>)));
+            services.TryAdd(ServiceDescriptor.Scoped(typeof(IQuery<>), typeof(Query<>)));
             services.Configure(setupAction);
             return services;
         }

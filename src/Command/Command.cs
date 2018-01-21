@@ -16,8 +16,9 @@ namespace NDbPortal.Command
         private readonly ICommandBuilder _cmdBuilder;
         private readonly DbOptions _dbOptions;
         private readonly SqlGenerator _sqlGenerator;
+        private readonly IDbCommand _cmd;
         private readonly short _pageSize;
-        private IDbTransaction _transaction;
+
 
         public Command(IConnectionFactory connectionFactory, ICommandFactory commandFactory,
                             INamingConvention namingConvention, IOptions<DbOptions> dbOptions,
@@ -30,65 +31,55 @@ namespace NDbPortal.Command
             _commandFactory = commandFactory;
             _sqlGenerator = new SqlGenerator(GetTableInfoBuilder().Build(), namingConvention);
             _pageSize = (short)(dbOptions.Value.PagedListSize > 0 ? dbOptions.Value.PagedListSize : 10);
+            this._cmd = commandFactory.Create(connectionFactory.Create());
         }
 
         public long Add(T obj)
         {
-            using (var cmd = _commandFactory.Create(_sqlGenerator.GetInsertQuery(), obj))
+            using (var finalCmd = _cmdBuilder.GetFinalCommand(_cmd, _sqlGenerator.GetInsertQuery(), obj))
             {
-                return Mapper.GetObject<long>(cmd);
-
+                return Mapper.GetObject<long>(finalCmd);
             }
         }
 
-        public bool AddRange(IEnumerable<T> entities)
+        public IList<long> AddRange(IEnumerable<T> entities)
         {
-            using (var conn = _connectionFactory.Create())
+            var returnIds = new List<long>();
+            BeginTransaction();
+            foreach (var entity in entities)
             {
-                conn.Open();
-                var transaction = conn.BeginTransaction();
-                var cmd = conn.CreateCommand();
-                foreach (T entity in entities)
-                {
-                    cmd = _cmdBuilder.GetFinalCommand(cmd, _sqlGenerator.GetInsertQuery(), entity);
-                    Mapper.GetObject<long>(cmd, false);
-                }
-                transaction.Commit();
+                var finalCommand = _cmdBuilder.GetFinalCommand(_cmd, _sqlGenerator.GetInsertQuery(), entity);
+                returnIds.Add(Mapper.GetObject<long>(_cmd, false));
             }
-            return true;
+            CommitTransaction();
+            return returnIds;
         }
 
         public long Update(T obj)
         {
-            using (var cmd = _commandFactory.Create(_sqlGenerator.GetUpdateQuery(), obj))
+            using (var finalCommand = _cmdBuilder.GetFinalCommand(_cmd, _sqlGenerator.GetUpdateQuery(), obj))
             {
-                return Mapper.GetObject<long>(cmd);
+                return Mapper.GetObject<long>(finalCommand);
             }
         }
 
         public long UpdateRange(IEnumerable<T> entities)
         {
             long affectedRecordsCount = 0;
-            using (var conn = _connectionFactory.Create())
+            BeginTransaction();
+            foreach (var entity in entities)
             {
-                conn.Open();
-                var transaction = conn.BeginTransaction();
-                var cmd = conn.CreateCommand();
-                foreach (var entity in entities)
-                {
-                    cmd = _cmdBuilder.GetFinalCommand(cmd, _sqlGenerator.GetUpdateQuery(), entity);
-                    affectedRecordsCount += Mapper.GetObject<long>(cmd, false);
-                }
-                transaction.Commit();
+                var finalCommand = _cmdBuilder.GetFinalCommand(_cmd, _sqlGenerator.GetUpdateQuery(), entity);
+                affectedRecordsCount += Mapper.GetObject<long>(finalCommand, false);
             }
             return affectedRecordsCount;
         }
 
         public bool Remove(long id)
         {
-            using (var cmd = _commandFactory.Create(_sqlGenerator.GetDeleteQuery(), new { id }))
+            using (var finalCommand = _cmdBuilder.GetFinalCommand(_cmd, _sqlGenerator.GetDeleteQuery(), new { id }))
             {
-                return Mapper.ExecuteNonQuery(cmd) > 0;
+                return Mapper.ExecuteNonQuery(finalCommand) > 0;
             }
         }
 
@@ -99,10 +90,22 @@ namespace NDbPortal.Command
 
         public void BeginTransaction()
         {
-            using (var conn = _connectionFactory.Create())
+            if (_cmd.Connection.State == ConnectionState.Open)
             {
-                _transaction = conn.BeginTransaction();
+                _cmd.Connection.Open();
             }
+
+            _cmd.Transaction = _cmd.Connection.BeginTransaction();
+        }
+
+        public void CommitTransaction()
+        {
+            _cmd.Transaction.Commit();
+        }
+
+        public void RollbackTransaction()
+        {
+            _cmd.Transaction.Rollback();
         }
 
 

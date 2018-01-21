@@ -19,7 +19,7 @@ namespace NDbPortal
             IDataReader rdr = null;
             try
             {
-                if (command.Connection.State != ConnectionState.Open)
+                if (command.Connection.State == ConnectionState.Closed)
                     command.Connection.Open();
                 var hasRows = false;
                 T t = default(T);

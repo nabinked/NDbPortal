@@ -28,10 +28,11 @@ namespace NDbPortal
             return _cmdBuilder.GetFinalCommand(cmd, commandText, parameters);
         }
 
-        public IDbCommand Create(IDbCommand cmd, string commandText, object parameters = null)
+        public IDbCommand Create(IDbConnection connection, string sqlStatement = null, object parameters = null,
+            bool isStoredProcedure = false)
         {
-            return _cmdBuilder.GetFinalCommand(cmd, commandText, parameters);
-
+            throw new System.NotImplementedException();
         }
+
     }
 }
