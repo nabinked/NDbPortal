@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace NDbPortal.Query
 {
-    public interface IQuery<T> where T : class
+    public interface IQuery<T, in TKey> where T : class
     {
 
         /// <summary>
@@ -13,7 +13,7 @@ namespace NDbPortal.Query
         /// </summary>
         /// <param name="id">id</param>
         /// <returns>Entity Type</returns>
-        T Get(long id);
+        T Get(TKey id);
 
         /// <summary>
         /// Gets all the entities

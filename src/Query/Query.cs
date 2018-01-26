@@ -9,35 +9,30 @@ using NDbPortal.Names;
 
 namespace NDbPortal.Query
 {
-    public class Query<T> : IQuery<T> where T : class
+    public class Query<T, TKey> : IQuery<T, TKey> where T : class
     {
         private readonly ICommandManager _commandManager;
         private readonly DbOptions _dbOptions;
         private readonly ISqlGenerator<T> _sqlGenerator;
-        private readonly IDbCommand _cmd;
+        private IDbCommand _cmd;
 
         public Query(IOptions<DbOptions> dbOptions, ICommandManager commandManager, ISqlGenerator<T> sqlGenerator)
         {
             _commandManager = commandManager;
+            _cmd = commandManager.GetNewCommand();
             _sqlGenerator = sqlGenerator;
             _dbOptions = dbOptions.Value;
-            _cmd = commandManager.GetCommand();
         }
-        public T Get(long id)
+        public T Get(TKey id)
         {
-            using (var cmd = _commandManager.PrepareCommandForExecution(_sqlGenerator.GetSelectByIdQuery(), new { id }))
-            {
-                return Mapper.GetObject<T>(cmd);
-            }
+            _commandManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetSelectByIdQuery(), new { id });
+            return Mapper.GetObject<T>(_cmd);
         }
 
         public IEnumerable<T> GetAll()
         {
-            using (var cmd = _commandManager.PrepareCommandForExecution(_sqlGenerator.GetSelectAllQuery()))
-            {
-                return Mapper.GetObjects<T>(cmd);
-            }
-
+            _commandManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetSelectAllQuery());
+            return Mapper.GetObjects<T>(_cmd);
         }
 
         public T Find(Expression<Func<T, bool>> expression)
@@ -47,10 +42,8 @@ namespace NDbPortal.Query
             var paramObj = (IDictionary<string, object>)obj;
             paramObj[propertyName] = ReflectionUtilities.GetValueFromExpression(expression);
             var columnName = _sqlGenerator.NamingConvention.ConvertToDbName(propertyName);
-            using (var cmd = _commandManager.PrepareCommandForExecution(_sqlGenerator.GetSelectByColumnNameQuery(columnName), obj))
-            {
-                return Mapper.GetObject<T>(cmd);
-            }
+            _commandManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetSelectByColumnNameQuery(columnName), obj);
+            return Mapper.GetObject<T>(_cmd);
 
         }
 
@@ -61,27 +54,32 @@ namespace NDbPortal.Query
             dynamic obj = new ExpandoObject();
             var paramObj = (IDictionary<string, object>)obj;
             paramObj[propertyName] = ReflectionUtilities.GetValueFromExpression(expression);
-            using (var cmd = _commandManager.PrepareCommandForExecution(_sqlGenerator.GetSelectByColumnNameQuery(columnName), obj))
-            {
-                return Mapper.GetObjects<T>(cmd);
-            }
+            _commandManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetSelectByColumnNameQuery(columnName), obj);
+            return Mapper.GetObjects<T>(_cmd);
         }
 
         public PagedList<T> GetPagedList(int page, string orderBy = "id")
         {
-            var sql = _sqlGenerator.GetPagedQuery(page, orderBy);
-            PagedList<T> pagedList;
-            using (var cmd = _commandManager.PrepareCommandForExecution(sql))
+            try
             {
-                IList<T> list = Mapper.GetObjects<T>(cmd).ToList();
-                cmd.CommandText = _sqlGenerator.GetCountQuery();
-                pagedList = new PagedList<T>(Mapper.ExecuteScalar<long>(cmd), page)
+                _commandManager.BeginTransaction(_cmd);
+                var mainSql = _sqlGenerator.GetPagedQuery(page, orderBy);
+                _commandManager.PrepareCommandForExecution(_cmd, mainSql);
+                IList<T> list = Mapper.GetObjects<T>(_cmd).ToList();
+                var countSql = _sqlGenerator.GetCountQuery();
+                _commandManager.PrepareCommandForExecution(_cmd, countSql);
+                var pagedList = new PagedList<T>(Mapper.ExecuteScalar<long>(_cmd), page)
                 {
                     List = list
                 };
+                _commandManager.CommitTransaction(_cmd);
+                return pagedList;
             }
-            return pagedList;
-
+            catch
+            {
+                _commandManager.RollbackTransaction(_cmd);
+                throw;
+            }
         }
 
     }

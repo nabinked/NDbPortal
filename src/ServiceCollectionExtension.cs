@@ -28,7 +28,7 @@ namespace NDbPortal
             services.TryAdd(ServiceDescriptor.Scoped(typeof(ITableInfoBuilder<>), typeof(TableInfoBuilder<>)));
             services.TryAdd(ServiceDescriptor.Scoped(typeof(ISqlGenerator<>), typeof(SqlGenerator<>)));
             services.TryAdd(ServiceDescriptor.Scoped(typeof(ICommand<,>), typeof(Command<,>)));
-            services.TryAdd(ServiceDescriptor.Scoped(typeof(IQuery<>), typeof(Query<>)));
+            services.TryAdd(ServiceDescriptor.Scoped(typeof(IQuery<,>), typeof(Query<,>)));
             services.Configure(setupAction);
             return services;
         }

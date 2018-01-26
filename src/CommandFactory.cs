@@ -40,5 +40,10 @@ namespace NDbPortal
 
         }
 
+        public void AttachConnection(IDbCommand command)
+        {
+            command.Connection = _connectionFactory.Create();
+        }
+
     }
 }

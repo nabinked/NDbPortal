@@ -4,7 +4,10 @@ namespace NDbPortal
 {
     public interface ICommandManager
     {
-        IDbCommand GetCommand();
-        IDbCommand PrepareCommandForExecution(string sql, object parameters = null);
+        IDbCommand GetNewCommand();
+        void PrepareCommandForExecution(IDbCommand cmd, string sql, object parameters = null);
+        void BeginTransaction(IDbCommand cmd);
+        void CommitTransaction(IDbCommand cmd);
+        void RollbackTransaction(IDbCommand cmd);
     }
 }

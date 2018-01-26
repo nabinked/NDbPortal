@@ -18,16 +18,14 @@ namespace NDbPortal.Command
         public Command(ICommandManager cmdManager, ISqlGenerator<T> sqlGenerator)
         {
             _cmdManager = cmdManager;
-            _cmd = cmdManager.GetCommand();
             _sqlGenerator = sqlGenerator;
+            _cmd = cmdManager.GetNewCommand();
         }
 
         public long Add(T obj)
         {
-            using (var finalCmd = _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetInsertQuery(), obj))
-            {
-                return Mapper.GetObject<long>(finalCmd);
-            }
+            _cmdManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetInsertQuery(), obj);
+            return Mapper.GetObject<long>(_cmd);
         }
 
         public IList<long> AddRange(IEnumerable<T> entities)
@@ -38,7 +36,7 @@ namespace NDbPortal.Command
                 BeginTransaction();
                 foreach (var entity in entities)
                 {
-                    var finalCommand = _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetInsertQuery(), entity);
+                    _cmdManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetInsertQuery(), entity);
                     returnIds.Add(Mapper.GetObject<long>(_cmd));
                 }
                 CommitTransaction();
@@ -54,10 +52,8 @@ namespace NDbPortal.Command
 
         public long Update(T obj)
         {
-            using (var finalCommand = _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetUpdateQuery(), obj))
-            {
-                return Mapper.ExecuteNonQuery(finalCommand);
-            }
+            _cmdManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetUpdateQuery(), obj);
+            return Mapper.ExecuteNonQuery(_cmd);
         }
 
         public long UpdateRange(IEnumerable<T> entities)
@@ -68,8 +64,8 @@ namespace NDbPortal.Command
                 BeginTransaction();
                 foreach (var entity in entities)
                 {
-                    var finalCommand = _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetUpdateQuery(), entity);
-                    affectedRecordsCount += Mapper.ExecuteNonQuery(finalCommand);
+                    _cmdManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetUpdateQuery(), entity);
+                    affectedRecordsCount += Mapper.ExecuteNonQuery(_cmd);
                 }
                 CommitTransaction();
             }
@@ -83,10 +79,8 @@ namespace NDbPortal.Command
 
         public bool Remove(TPrimary id)
         {
-            using (var finalCommand = _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetDeleteQuery(), new { id }))
-            {
-                return Mapper.ExecuteNonQuery(finalCommand) > 0;
-            }
+            _cmdManager.PrepareCommandForExecution(_cmd,_sqlGenerator.GetDeleteQuery(), new { id });
+            return Mapper.ExecuteNonQuery(_cmd) > 0;
         }
 
         public bool RemoveRange(List<TPrimary> idsList)
@@ -96,8 +90,8 @@ namespace NDbPortal.Command
                 BeginTransaction();
                 foreach (var id in idsList)
                 {
-                    var finalCommand = _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetDeleteQuery(), new { id });
-                    Mapper.ExecuteNonQuery(finalCommand);
+                    _cmdManager.PrepareCommandForExecution(_cmd,_sqlGenerator.GetDeleteQuery(), new { id });
+                    Mapper.ExecuteNonQuery(_cmd);
                 }
                 CommitTransaction();
             }
@@ -117,26 +111,17 @@ namespace NDbPortal.Command
 
         public void BeginTransaction()
         {
-            if (_cmd.Connection.State != ConnectionState.Open)
-            {
-                _cmd.Connection.Open();
-            }
-
-            _cmd.Transaction = _cmd.Connection.BeginTransaction();
+            _cmdManager.BeginTransaction(_cmd);
         }
 
         public void CommitTransaction()
         {
-            _cmd.Transaction?.Commit();
-            _cmd.Connection?.Dispose();
-            _cmd?.Dispose();
+            _cmdManager.CommitTransaction(_cmd);
         }
 
         public void RollbackTransaction()
         {
-            _cmd.Transaction?.Rollback();
-            _cmd.Connection?.Dispose();
-            _cmd?.Dispose();
+            _cmdManager.RollbackTransaction(_cmd);
         }
 
 

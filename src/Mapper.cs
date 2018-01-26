@@ -51,7 +51,6 @@ namespace NDbPortal
         /// Gets a list of T Objects from the command
         /// </summary>
         /// <param name="command">Command to be executed</param>
-        /// <param name="dispose">dispose cmd object</param>
         /// <returns>List of instance of T objects</returns>
         public static IEnumerable<T> GetObjects<T>(IDbCommand command)
         {

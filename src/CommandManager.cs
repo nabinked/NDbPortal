@@ -9,39 +9,55 @@ namespace NDbPortal
         private readonly ICommandFactory _commandFactory;
         private readonly INamingConvention _namingConvention;
         private readonly ParamParser _paramParser;
-        private readonly IDbCommand _cmd;
 
         public CommandManager(ICommandFactory commandFactory, INamingConvention namingConvention)
         {
             _commandFactory = commandFactory;
             _namingConvention = namingConvention;
             _paramParser = new ParamParser(namingConvention);
-            _cmd = commandFactory.Create();
         }
 
         #region Public Behaviours
 
-        public IDbCommand GetCommand()
+        public IDbCommand GetNewCommand()
         {
-            if (_cmd.Connection == null)
-            {
-                return _commandFactory.Create();
-            }
-            else
-            {
-                return _cmd;
-            }
+            return _commandFactory.Create();
         }
 
-        public IDbCommand PrepareCommandForExecution(string sql, object parameters = null)
+        public void PrepareCommandForExecution(IDbCommand cmd, string sql, object parameters = null)
         {
-            return PopulateParameters(GetCommand(), sql, parameters);
+            PopulateParameters(cmd, sql, parameters);
         }
 
+        public void BeginTransaction(IDbCommand cmd)
+        {
+            if (cmd.Connection.State != ConnectionState.Open)
+            {
+                cmd.Connection.Open();
+            }
+
+            cmd.Transaction = cmd.Connection.BeginTransaction();
+        }
+
+        public void CommitTransaction(IDbCommand cmd)
+        {
+            cmd.Transaction?.Commit();
+            cmd.Connection?.Close();
+            cmd.Connection?.Dispose();
+            cmd?.Dispose();
+        }
+
+        public void RollbackTransaction(IDbCommand cmd)
+        {
+            cmd.Transaction?.Rollback();
+            cmd.Connection?.Close();
+            cmd.Connection?.Dispose();
+            cmd?.Dispose();
+        }
         #endregion
 
         #region Private Behaviours
-        IDbCommand PopulateParameters(IDbCommand cmd, string sql, object parameters = null)
+        void PopulateParameters(IDbCommand cmd, string sql, object parameters = null)
         {
             cmd.Parameters.Clear();
             cmd.CommandText = sql;
@@ -68,7 +84,6 @@ namespace NDbPortal
                 }
 
             }
-            return cmd;
         }
         IDbDataParameter GetParam(IDbCommand dbCommand, string paramName, object paramValue)
         {

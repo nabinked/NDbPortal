@@ -3,14 +3,35 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using NDbPortal.Query;
+using NDbPortal.Sample.Web.LtvDev;
 
 namespace NDbPortal.Sample.Web.Controllers
 {
     public class QueryController : Controller
     {
-        public IActionResult Index()
+        private readonly IQuery<User, long> _userQuery;
+
+        public QueryController(IQuery<User, long> userQuery)
         {
-            return View();
+            _userQuery = userQuery;
+        }
+        public IActionResult Get(long id)
+        {
+            var model = _userQuery.Get(id);
+            return View("Index", model);
+        }
+
+        public IActionResult GetAll()
+        {
+            var model = _userQuery.GetAll();
+            return View("Index", model);
+        }
+
+        public IActionResult GetPagedList(int page)
+        {
+            var model = _userQuery.GetPagedList(page);
+            return View("Index", model);
         }
     }
 }

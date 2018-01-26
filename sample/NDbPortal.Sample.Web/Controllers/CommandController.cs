@@ -130,7 +130,7 @@ namespace NDbPortal.Sample.Web.Controllers
             return View("Index", data);
         }
 
-        public IActionResult RemoveList(List<long> ids)
+        public IActionResult RemoveRange(List<long> ids)
         {
             var data = _userCommand.RemoveRange(ids);
             return View("Index", data);
