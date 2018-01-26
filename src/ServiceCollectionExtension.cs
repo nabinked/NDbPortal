@@ -24,9 +24,10 @@ namespace NDbPortal
             services.AddSingleton<IConnectionFactory, ConnectionFactory>();
             services.AddSingleton<ICommandFactory, CommandFactory>();
             services.AddSingleton<IStoredProcedure, StoredProcedure>();
-            services.AddSingleton<ICommandBuilder, CommandBuilder>();
+            services.AddScoped<ICommandManager, CommandManager>();
             services.TryAdd(ServiceDescriptor.Scoped(typeof(ITableInfoBuilder<>), typeof(TableInfoBuilder<>)));
-            services.TryAdd(ServiceDescriptor.Scoped(typeof(ICommand<>), typeof(Command<>)));
+            services.TryAdd(ServiceDescriptor.Scoped(typeof(ISqlGenerator<>), typeof(SqlGenerator<>)));
+            services.TryAdd(ServiceDescriptor.Scoped(typeof(ICommand<,>), typeof(Command<,>)));
             services.TryAdd(ServiceDescriptor.Scoped(typeof(IQuery<>), typeof(Query<>)));
             services.Configure(setupAction);
             return services;

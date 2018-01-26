@@ -10,11 +10,9 @@ namespace NDbPortal.Test
         [TestMethod]
         public void TestMethod1()
         {
-            var namingConvention = new NamingConvention()
-            {
-                DbNamingConvention = DbEnums.NamingConventions.UnderScoreCase,
-                PocoNamingConvention = DbEnums.NamingConventions.PascalCase
-            };
+            var namingConvention = new NamingConvention(DbEnums.NamingConventions.UnderScoreCase,
+                DbEnums.NamingConventions.PascalCase);
+
             //var storedProcName = "test";
             //var sqlGenerator = new SqlGenerator(new TableInfo(storedProcName), namingConvention);
             //var s = sqlGenerator.GetStoredProcQuery(new { param1 = 1, param2 = "two" });

@@ -10,29 +10,21 @@ namespace NDbPortal.Command
 {
     public class Command<T, TPrimary> : ICommand<T, TPrimary> where T : class
     {
-        private readonly ICommandFactory _commandFactory;
-        private readonly INamingConvention _namingConvention;
-        private readonly ICommandBuilder _cmdBuilder;
-        private readonly DbOptions _dbOptions;
-        private readonly SqlGenerator _sqlGenerator;
+        private readonly ICommandManager _cmdManager;
+        private readonly ISqlGenerator<T> _sqlGenerator;
         private readonly IDbCommand _cmd;
-        private readonly short _pageSize;
 
 
-        public Command(ICommandFactory commandFactory, INamingConvention namingConvention, IOptions<DbOptions> dbOptions, ICommandBuilder cmdBuilder)
+        public Command(ICommandManager cmdManager, ISqlGenerator<T> sqlGenerator)
         {
-            _namingConvention = namingConvention;
-            _cmdBuilder = cmdBuilder;
-            _dbOptions = dbOptions.Value;
-            _commandFactory = commandFactory;
-            _sqlGenerator = new SqlGenerator(GetTableInfoBuilder().Build(), namingConvention);
-            _pageSize = (short)(dbOptions.Value.PagedListSize > 0 ? dbOptions.Value.PagedListSize : 10);
-            _cmd = commandFactory.Create();
+            _cmdManager = cmdManager;
+            _cmd = cmdManager.GetCommand();
+            _sqlGenerator = sqlGenerator;
         }
 
         public long Add(T obj)
         {
-            using (var finalCmd = _cmdBuilder.GetFinalCommand(_cmd, _sqlGenerator.GetInsertQuery(), obj))
+            using (var finalCmd = _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetInsertQuery(), obj))
             {
                 return Mapper.GetObject<long>(finalCmd);
             }
@@ -46,22 +38,23 @@ namespace NDbPortal.Command
                 BeginTransaction();
                 foreach (var entity in entities)
                 {
-                    var finalCommand = _cmdBuilder.GetFinalCommand(_cmd, _sqlGenerator.GetInsertQuery(), entity);
-                    returnIds.Add(Mapper.GetObject<long>(_cmd, false));
+                    var finalCommand = _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetInsertQuery(), entity);
+                    returnIds.Add(Mapper.GetObject<long>(_cmd));
                 }
                 CommitTransaction();
             }
             catch
             {
-                RollbackTransaction();
                 returnIds.Clear();
+                RollbackTransaction();
+                throw;
             }
             return returnIds;
         }
 
         public long Update(T obj)
         {
-            using (var finalCommand = _cmdBuilder.GetFinalCommand(_cmd, _sqlGenerator.GetUpdateQuery(), obj))
+            using (var finalCommand = _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetUpdateQuery(), obj))
             {
                 return Mapper.ExecuteNonQuery(finalCommand);
             }
@@ -75,8 +68,8 @@ namespace NDbPortal.Command
                 BeginTransaction();
                 foreach (var entity in entities)
                 {
-                    var finalCommand = _cmdBuilder.GetFinalCommand(_cmd, _sqlGenerator.GetUpdateQuery(), entity);
-                    affectedRecordsCount += Mapper.ExecuteNonQuery(finalCommand, false);
+                    var finalCommand = _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetUpdateQuery(), entity);
+                    affectedRecordsCount += Mapper.ExecuteNonQuery(finalCommand);
                 }
                 CommitTransaction();
             }
@@ -90,7 +83,7 @@ namespace NDbPortal.Command
 
         public bool Remove(TPrimary id)
         {
-            using (var finalCommand = _cmdBuilder.GetFinalCommand(_cmd, _sqlGenerator.GetDeleteQuery(), new { id }))
+            using (var finalCommand = _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetDeleteQuery(), new { id }))
             {
                 return Mapper.ExecuteNonQuery(finalCommand) > 0;
             }
@@ -98,19 +91,24 @@ namespace NDbPortal.Command
 
         public bool Remove(T obj)
         {
-            var primaryKeyName = ReflectionUtilities.GetPrimaryKey(typeof(TPrimary));
-            var id = ReflectionUtilities.GetPropertyValue<T,TPrimary>(primaryKeyName, obj);
+            var primaryKeyName = _sqlGenerator.TableInfo.PrimaryKey;
+            var id = ReflectionUtilities.GetPropertyValue<TPrimary>(primaryKeyName, obj);
             return Remove(id);
         }
 
-        public List<int> RemoveRange(List<TPrimary> idsList)
+        public bool RemoveRange(List<TPrimary> idsList)
         {
-            
+            foreach (TPrimary id in idsList)
+            {
+
+            }
+
+            return false;
         }
 
-        public List<int> RemoveRange(List<T> objs)
+        public bool RemoveRange(List<T> objs)
         {
-            
+            return false;
         }
 
         public long Upsert(T obj)
@@ -147,7 +145,7 @@ namespace NDbPortal.Command
         /// <returns></returns>
         private bool IsNew(T t)
         {
-            var primaryKey = ReflectionUtilities.GetPrimaryKey(typeof(T).GetTypeInfo());
+            var primaryKey = _sqlGenerator.TableInfo.PrimaryKey;
             if (t.HasProperty(primaryKey))
             {
                 var primaryKeyProperty =
@@ -163,14 +161,6 @@ namespace NDbPortal.Command
                 }
             }
             return false;
-        }
-
-        private ITableInfoBuilder<T> GetTableInfoBuilder()
-        {
-            return new TableInfoBuilder<T>(_namingConvention, _dbOptions)
-                .SetTableName()
-                .SetPrimaryKey()
-                .SetColumnInfos();
         }
 
         #endregion

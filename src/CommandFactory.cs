@@ -30,6 +30,7 @@ namespace NDbPortal
         public IDbCommand Create(IDbConnection connection, bool isStoredProcedure = false)
         {
             var cmd = connection.CreateCommand();
+            cmd.Connection = connection;
             if (isStoredProcedure)
             {
                 cmd.CommandType = CommandType.StoredProcedure;

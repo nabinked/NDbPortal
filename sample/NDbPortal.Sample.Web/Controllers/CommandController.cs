@@ -10,9 +10,9 @@ namespace NDbPortal.Sample.Web.Controllers
 {
     public class CommandController : Controller
     {
-        private readonly ICommand<User> _userCommand;
+        private readonly ICommand<User, long> _userCommand;
 
-        public CommandController(ICommand<User> userCommand)
+        public CommandController(ICommand<User, long> userCommand)
         {
             _userCommand = userCommand;
         }
@@ -82,7 +82,7 @@ namespace NDbPortal.Sample.Web.Controllers
             });
             return View("Index", newUserId);
         }
-        
+
         public IActionResult Update()
         {
             var newUserId = _userCommand.Update(new User()

@@ -5,7 +5,7 @@ using NDbPortal.Names;
 
 namespace NDbPortal
 {
-    public class ParamParser
+    public class ParamParser : IParamParser
     {
         private readonly INamingConvention _namingConvention;
         private readonly char[] _paramIdentifiers;

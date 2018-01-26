@@ -51,14 +51,14 @@ namespace NDbPortal.Command
         /// </summary>
         /// <param name="idsList"></param>
         /// <returns></returns>
-        List<int> RemoveRange(List<TPrimary> idsList);
+        bool RemoveRange(List<TPrimary> idsList);
 
         /// <summary>
         /// Removes a list of object
         /// </summary>
         /// <param name="objs"></param>
         /// <returns></returns>
-        List<int> RemoveRange(List<T> objs);
+        bool RemoveRange(List<T> objs);
 
         /// <summary>
         /// Experimental method that updates entity if exists already otherwise creates a new one.

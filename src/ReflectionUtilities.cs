@@ -93,7 +93,7 @@ namespace NDbPortal
             return retObject;
         }
 
-        public static TProperty GetPropertyValue<TObject, TProperty>(string propertyName, TObject obj)
+        public static TProperty GetPropertyValue<TProperty>(string propertyName, object obj)
         {
             if (obj is IDynamicMetaObjectProvider)
             {
@@ -121,7 +121,6 @@ namespace NDbPortal
                 }
                 return first;
             }
-
         }
 
         public static IEnumerable<string> GetProperties(object obj)
@@ -162,17 +161,6 @@ namespace NDbPortal
         public static bool HasProperty(this object obj, string propertyName)
         {
             return obj.GetType().GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Instance) != null;
-        }
-
-        public static string GetPrimaryKey<T>(T t)
-        {
-            return GetPrimaryKey(typeof(T).GetTypeInfo());
-        }
-
-        public static string GetPrimaryKey(TypeInfo t)
-        {
-            var priamryKeyAttr = t.GetCustomAttributes<PrimaryKeyAttribute>(true).ToList();
-            return priamryKeyAttr.Count > 0 ? priamryKeyAttr[0].Value : null;
         }
 
         public static T CastTo<T>(object input)

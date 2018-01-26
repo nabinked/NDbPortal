@@ -21,9 +21,10 @@ namespace NDbPortal
             _dbOptions = dbOptions;
             _t = typeof(T).GetTypeInfo();
         }
+
         public ITableInfoBuilder<T> SetPrimaryKey()
         {
-            _tableInfo.PrimaryKey = ReflectionUtilities.GetPrimaryKey(_t) ?? _dbOptions.DefaultPrimaryKeyName;
+            _tableInfo.PrimaryKey = GetPrimaryKey(_t) ?? _dbOptions.DefaultPrimaryKeyName;
             return this;
         }
 
@@ -61,7 +62,15 @@ namespace NDbPortal
             _tableInfo.UpsertableColumns = GetInsertUpdatableColumns(_tableInfo.Columns);
             return this;
         }
-
+        public string GetPrimaryKey()
+        {
+            return GetPrimaryKey(typeof(T).GetTypeInfo()) ?? _dbOptions.DefaultPrimaryKeyName;
+        }
+        private string GetPrimaryKey(TypeInfo t)
+        {
+            var priamryKeyAttr = t.GetCustomAttributes<PrimaryKeyAttribute>(true).ToList();
+            return priamryKeyAttr.Count > 0 ? priamryKeyAttr[0].Value : null;
+        }
         public TableInfo Build()
         {
             return _tableInfo;
@@ -74,14 +83,17 @@ namespace NDbPortal
             var notDisplayColumns = columns.Where(x => !x.IsDisplayColumn);
             foreach (var columnInfo in notDisplayColumns)
             {
-                if (!columnInfo.ColumnName.Equals(ReflectionUtilities.GetPrimaryKey(_t), StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrWhiteSpace(_tableInfo.PrimaryKey))
+                {
+                    throw new InvalidOperationException("Primary is not set yet.");
+                }
+                if (!columnInfo.ColumnName.Equals(_tableInfo.PrimaryKey, StringComparison.OrdinalIgnoreCase))
                 {
                     retColumns.Add(columnInfo);
                 }
             }
             return retColumns;
         }
-
 
         private IList<ColumnInfo> GetColumnInfos(PropertyInfo[] properties)
         {
