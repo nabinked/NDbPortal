@@ -2,7 +2,7 @@
 
 namespace NDbPortal.Command
 {
-    interface ICommand<in T> where T : class
+    public interface ICommand<T, TPrimary> where T : class
     {
         /// <summary>
         /// Adds an entity
@@ -34,11 +34,31 @@ namespace NDbPortal.Command
 
 
         /// <summary>
-        /// Deletes an entity
+        /// Deletes an entity by its id
         /// </summary>
         /// <param name="id">id of the entity</param>
         /// <returns></returns>
-        bool Remove(long id);
+        bool Remove(TPrimary id);
+        /// <summary>
+        /// Remove <see cref="T"/> from database
+        /// </summary>
+        /// <param name="obj">Object to be removed</param>
+        /// <returns></returns>
+        bool Remove(T obj);
+
+        /// <summary>
+        /// Removes a list of object using their primary ids
+        /// </summary>
+        /// <param name="idsList"></param>
+        /// <returns></returns>
+        List<int> RemoveRange(List<TPrimary> idsList);
+
+        /// <summary>
+        /// Removes a list of object
+        /// </summary>
+        /// <param name="objs"></param>
+        /// <returns></returns>
+        List<int> RemoveRange(List<T> objs);
 
         /// <summary>
         /// Experimental method that updates entity if exists already otherwise creates a new one.

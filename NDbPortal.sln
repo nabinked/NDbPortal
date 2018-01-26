@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDbPortal.Test", "test\NDbP
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDbPortal.Names", "..\NDbPortal.Names\NDbPortal.Names.csproj", "{6349C366-F6B0-41FF-9DE1-121E4356AE8E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDbPortal.Sample.Web", "sample\NDbPortal.Sample.Web\NDbPortal.Sample.Web.csproj", "{960118AE-BF10-4155-B854-15609D04D0D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDbPortal.Sample.Web", "sample\NDbPortal.Sample.Web\NDbPortal.Sample.Web.csproj", "{6BC5B477-9C56-4B70-AC5C-8C520740BFBD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{6349C366-F6B0-41FF-9DE1-121E4356AE8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6349C366-F6B0-41FF-9DE1-121E4356AE8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6349C366-F6B0-41FF-9DE1-121E4356AE8E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{960118AE-BF10-4155-B854-15609D04D0D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{960118AE-BF10-4155-B854-15609D04D0D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{960118AE-BF10-4155-B854-15609D04D0D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{960118AE-BF10-4155-B854-15609D04D0D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6BC5B477-9C56-4B70-AC5C-8C520740BFBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BC5B477-9C56-4B70-AC5C-8C520740BFBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BC5B477-9C56-4B70-AC5C-8C520740BFBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BC5B477-9C56-4B70-AC5C-8C520740BFBD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

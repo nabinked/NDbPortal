@@ -34,6 +34,7 @@ namespace NDbPortal
                     }
 
                 }
+
                 return hasRows ? t : default(T);
             }
             finally
@@ -78,7 +79,7 @@ namespace NDbPortal
             }
         }
 
-        public static List<KeyValuePair<TKey, TValue>> GetKeyValuePairs<TKey, TValue>(IDbCommand cmd)
+        public static List<KeyValuePair<TKey, TValue>> GetKeyValuePairs<TKey, TValue>(IDbCommand cmd, bool dispose = true)
         {
             IDataReader rdr = null;
             try
@@ -99,7 +100,7 @@ namespace NDbPortal
             }
             finally
             {
-                Dispose(cmd, rdr);
+                if (dispose) Dispose(cmd, rdr);
 
             }
         }
@@ -122,7 +123,7 @@ namespace NDbPortal
 
         }
 
-        public static int ExecuteNonQuery(IDbCommand cmd)
+        public static int ExecuteNonQuery(IDbCommand cmd, bool dispose = true)
         {
             try
             {
@@ -132,7 +133,7 @@ namespace NDbPortal
             }
             finally
             {
-                Dispose(cmd);
+                if (dispose) Dispose(cmd);
             }
         }
 

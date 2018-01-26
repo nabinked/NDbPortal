@@ -9,7 +9,7 @@ namespace NDbPortal
 {
     public static class ServiceCollectionExtension
     {
-        public static IServiceCollection AddDbPortal(this IServiceCollection services, Action<DbOptions> setupAction)
+        public static IServiceCollection AddNDbPortal(this IServiceCollection services, Action<DbOptions> setupAction)
         {
             if (services == null)
             {

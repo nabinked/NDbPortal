@@ -23,7 +23,7 @@ namespace NDbPortal
         }
         public ITableInfoBuilder<T> SetPrimaryKey()
         {
-            _tableInfo.PrimaryKey = ReflectionUtilities.GetPrimaryKey(_t);
+            _tableInfo.PrimaryKey = ReflectionUtilities.GetPrimaryKey(_t) ?? _dbOptions.DefaultPrimaryKeyName;
             return this;
         }
 
@@ -40,7 +40,7 @@ namespace NDbPortal
         {
             if (!string.IsNullOrWhiteSpace(tableAttribute?.Schema))
             {
-                return tableAttribute.Schema;
+                return tableAttribute?.Schema;
             }
             if (!string.IsNullOrWhiteSpace(_dbOptions.DefaultSchema))
             {
@@ -51,7 +51,7 @@ namespace NDbPortal
 
         private string GetTableName(TableAttribute tableAttribute)
         {
-            return !string.IsNullOrWhiteSpace(tableAttribute?.Name) ? tableAttribute.Name : _namingConvention.ConvertToDbName(_t.Name);
+            return !string.IsNullOrWhiteSpace(tableAttribute?.Name) ? tableAttribute?.Name : _namingConvention.ConvertToDbName(_t.Name);
         }
 
         public ITableInfoBuilder<T> SetColumnInfos()

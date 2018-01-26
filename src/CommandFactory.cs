@@ -5,12 +5,10 @@ namespace NDbPortal
     public class CommandFactory : ICommandFactory
     {
         private readonly IConnectionFactory _connectionFactory;
-        private readonly ICommandBuilder _cmdBuilder;
 
-        public CommandFactory(IConnectionFactory connectionFactory, ICommandBuilder cmdBuilder)
+        public CommandFactory(IConnectionFactory connectionFactory)
         {
             this._connectionFactory = connectionFactory;
-            _cmdBuilder = cmdBuilder;
         }
 
         public CommandFactory(string connectionString)
@@ -18,20 +16,27 @@ namespace NDbPortal
             this._connectionFactory = new ConnectionFactory(connectionString);
         }
 
-        public IDbCommand Create(string commandText, object parameters = null, bool isStoredProcedure = false)
+        public IDbCommand Create()
         {
-            var cmd = _connectionFactory.Create().CreateCommand();
+            return Create(_connectionFactory.Create());
+        }
+
+        public IDbCommand Create(bool isStoredProcedure)
+        {
+            return Create(_connectionFactory.Create(), isStoredProcedure);
+        }
+
+
+        public IDbCommand Create(IDbConnection connection, bool isStoredProcedure = false)
+        {
+            var cmd = connection.CreateCommand();
             if (isStoredProcedure)
             {
                 cmd.CommandType = CommandType.StoredProcedure;
             }
-            return _cmdBuilder.GetFinalCommand(cmd, commandText, parameters);
-        }
 
-        public IDbCommand Create(IDbConnection connection, string sqlStatement = null, object parameters = null,
-            bool isStoredProcedure = false)
-        {
-            throw new System.NotImplementedException();
+            return cmd;
+
         }
 
     }

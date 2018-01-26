@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace NDbPortal.Query
 {
-    interface IQuery<T> where T : class
+    public interface IQuery<T> where T : class
     {
 
         /// <summary>

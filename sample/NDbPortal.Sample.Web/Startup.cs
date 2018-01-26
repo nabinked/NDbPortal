@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NDbPortal.Names;
 
@@ -12,23 +7,21 @@ namespace NDbPortal.Sample.Web
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
-
-        public IConfiguration Configuration { get; }
-
         // This method gets called by the runtime. Use this method to add services to the container.
+        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbPortal(options =>
+            services.AddNDbPortal(options =>
             {
-                options.ConnectionStrings = new ConnectionStrings
+                options.ConnectionStrings = new ConnectionStrings()
                 {
-
-                }
+                    DefaultConnectionString =
+                        "Server=127.0.0.1;Port=5432;Database=ltv;User Id=postgres;Password = nabin"
+                };
+                options.DefaultSchema = "ltv_dev";
             });
+
+
             services.AddMvc();
         }
 
@@ -39,19 +32,8 @@ namespace NDbPortal.Sample.Web
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
-            {
-                app.UseExceptionHandler("/Home/Error");
-            }
 
-            app.UseStaticFiles();
-
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-            });
+            app.UseMvcWithDefaultRoute();
         }
     }
 }

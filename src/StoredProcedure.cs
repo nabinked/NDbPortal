@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Data;
 using Microsoft.Extensions.Options;
 using NDbPortal.Extensions;
 using NDbPortal.Names;
@@ -8,12 +9,16 @@ namespace NDbPortal
     public class StoredProcedure : IStoredProcedure
     {
         private readonly ICommandFactory _commandFactory;
+        private readonly ICommandBuilder _commandBuilder;
         private readonly INamingConvention _namingConvention;
         private readonly DbOptions _dbOptions;
+        private IDbCommand _cmd;
 
-        public StoredProcedure(ICommandFactory commandFactory, INamingConvention namingConvention, IOptions<DbOptions> dbOptions)
+        public StoredProcedure(ICommandFactory commandFactory, ICommandBuilder commandBuilder, INamingConvention namingConvention, IOptions<DbOptions> dbOptions)
         {
             _commandFactory = commandFactory;
+            _commandBuilder = commandBuilder;
+            _cmd = commandFactory.Create(true);
             _dbOptions = dbOptions.Value;
             _namingConvention = namingConvention;
         }
@@ -25,7 +30,7 @@ namespace NDbPortal
         public void Invoke(string name, object prms = null)
         {
             var fName = Utils.GetSchemaQualifiedName(name, _dbOptions.DefaultSchema);
-            using (var cmd = _commandFactory.Create(fName, prms, true))
+            using (var cmd = _commandBuilder.GetFinalCommand(_cmd, fName, prms))
             {
                 Mapper.ExecuteNonQuery(cmd);
             }
@@ -36,7 +41,7 @@ namespace NDbPortal
         {
 
             var attr = ReflectionUtilities.GetEntityAttribute(typeof(T));
-            using (var cmd = _commandFactory.Create(GetTableInfo<T>().FullTableName, prm, true))
+            using (var cmd = _commandBuilder.GetFinalCommand(_cmd, GetTableInfo<T>().FullTableName, prm))
             {
                 return Mapper.GetObject<T>(cmd);
 
@@ -46,7 +51,7 @@ namespace NDbPortal
         public T Get<T>(string name, object prm = null)
         {
             var fName = Utils.GetSchemaQualifiedName(name, _dbOptions.DefaultSchema);
-            using (var cmd = _commandFactory.Create(fName, prm, true))
+            using (var cmd = _commandBuilder.GetFinalCommand(_cmd, fName, prm))
             {
                 return Mapper.GetObject<T>(cmd);
             }
@@ -60,7 +65,7 @@ namespace NDbPortal
         public IEnumerable<T> GetList<T>(string name, object prm = null)
         {
             var fName = Utils.GetSchemaQualifiedName(name, _dbOptions.DefaultSchema);
-            using (var cmd = _commandFactory.Create(fName, prm, true))
+            using (var cmd = _commandBuilder.GetFinalCommand(_cmd, fName, prm))
             {
                 return Mapper.GetObjects<T>(cmd);
             }
@@ -73,14 +78,13 @@ namespace NDbPortal
 
         public PagedList<T> GetPagedList<T>(string name, long page, dynamic prm = null) where T : class
         {
-
             var pageSize = _dbOptions.PagedListSize;
             var offset = pageSize * page;
             PagedList<T> pagedList;
             var sqlGenerator = new SqlGenerator(name, _dbOptions.DefaultSchema, _namingConvention);
             string sql = sqlGenerator.GetStoredProcQuery(prm);
             sql = sql.AppendLimitOffset(pageSize, offset);
-            using (var cmd = _commandFactory.Create(sql, prm))
+            using (var cmd = _commandBuilder.GetFinalCommand(_cmd, sql, prm))
             {
                 //get the actual list into list property of pagedList;
                 IList<T> list = Mapper.GetObjects<T>(cmd, false);

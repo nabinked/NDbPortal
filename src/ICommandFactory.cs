@@ -4,7 +4,8 @@ namespace NDbPortal
 {
     public interface ICommandFactory
     {
-        IDbCommand Create(string sqlStatement = null, object parameters = null, bool isStoredProcedure = false);
-        IDbCommand Create(IDbConnection connection, string sqlStatement = null, object parameters = null, bool isStoredProcedure = false);
+        IDbCommand Create();
+        IDbCommand Create(bool isStoredProcedure);
+        IDbCommand Create(IDbConnection connection, bool isStoredProcedure = false);
     }
 }

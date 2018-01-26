@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -8,32 +9,30 @@ using NDbPortal.Names;
 
 namespace NDbPortal.Query
 {
-    class Query<T> : IQuery<T> where T : class
+    public class Query<T> : IQuery<T> where T : class
     {
         private readonly ICommandFactory _commandFactory;
         private readonly INamingConvention _namingConvention;
-        private ICommandBuilder _cmdBuilder;
+        private readonly ICommandBuilder _cmdBuilder;
         private readonly DbOptions _dbOptions;
-        private IConnectionFactory _connectionFactory;
         private readonly SqlGenerator _sqlGenerator;
         private readonly short _pageSize;
+        private readonly IDbCommand _cmd;
 
-        public Query(IConnectionFactory connectionFactory, ICommandFactory commandFactory,
-            INamingConvention namingConvention, IOptions<DbOptions> dbOptions,
-            ICommandBuilder cmdBuilder)
+        public Query(ICommandFactory commandFactory, INamingConvention namingConvention, IOptions<DbOptions> dbOptions, ICommandBuilder cmdBuilder)
         {
             _namingConvention = namingConvention;
             _cmdBuilder = cmdBuilder;
             _dbOptions = dbOptions.Value;
-            _connectionFactory = connectionFactory;
             _commandFactory = commandFactory;
+            _cmd = commandFactory.Create();
             var tableInfoBuilder = GetTableInfoBuilder();
             _sqlGenerator = new SqlGenerator(tableInfoBuilder.Build(), namingConvention);
             _pageSize = (short)(dbOptions.Value.PagedListSize > 0 ? dbOptions.Value.PagedListSize : 10);
         }
         public T Get(long id)
         {
-            using (var cmd = _commandFactory.Create(_sqlGenerator.GetSelectByIdQuery(), new { id }))
+            using (var cmd = _cmdBuilder.GetFinalCommand(_cmd, _sqlGenerator.GetSelectByIdQuery(), new { id }))
             {
                 return Mapper.GetObject<T>(cmd);
             }
@@ -41,7 +40,7 @@ namespace NDbPortal.Query
 
         public IEnumerable<T> GetAll()
         {
-            using (var cmd = _commandFactory.Create(_sqlGenerator.GetSelectAllQuery()))
+            using (var cmd = _cmdBuilder.GetFinalCommand(_cmd, _sqlGenerator.GetSelectAllQuery()))
             {
                 return Mapper.GetObjects<T>(cmd);
             }
@@ -55,7 +54,7 @@ namespace NDbPortal.Query
             var paramObj = (IDictionary<string, object>)obj;
             paramObj[propertyName] = ReflectionUtilities.GetValueFromExpression(expression);
             var columnName = _namingConvention.ConvertToDbName(propertyName);
-            using (var cmd = _commandFactory.Create(_sqlGenerator.GetSelectByColumnNameQuery(columnName), obj))
+            using (var cmd = _cmdBuilder.GetFinalCommand(_cmd, _sqlGenerator.GetSelectByColumnNameQuery(columnName), obj))
             {
                 return Mapper.GetObject<T>(cmd);
             }
@@ -69,7 +68,7 @@ namespace NDbPortal.Query
             dynamic obj = new ExpandoObject();
             var paramObj = (IDictionary<string, object>)obj;
             paramObj[propertyName] = ReflectionUtilities.GetValueFromExpression(expression);
-            using (var cmd = _commandFactory.Create(_sqlGenerator.GetSelectByColumnNameQuery(columnName), obj))
+            using (var cmd = _cmdBuilder.GetFinalCommand(_cmd, _sqlGenerator.GetSelectByColumnNameQuery(columnName), obj))
             {
                 return Mapper.GetObjects<T>(cmd);
             }
@@ -79,7 +78,7 @@ namespace NDbPortal.Query
         {
             var sql = _sqlGenerator.GetPagedQuery(orderBy);
             PagedList<T> pagedList;
-            using (var cmd = _commandFactory.Create(sql, new { limit = _pageSize, offset = GetOffset(page) }))
+            using (var cmd = _cmdBuilder.GetFinalCommand(_cmd, sql, new { limit = _pageSize, offset = GetOffset(page) }))
             {
                 IList<T> list = Mapper.GetObjects<T>(cmd, false).ToList();
                 cmd.CommandText = _sqlGenerator.GetCountQuery();
