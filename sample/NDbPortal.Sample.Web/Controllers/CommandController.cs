@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NDbPortal.Command;
 using NDbPortal.Sample.Web.LtvDev;
@@ -124,6 +122,32 @@ namespace NDbPortal.Sample.Web.Controllers
                 }
             });
             return View("Index", newUserId);
+        }
+
+        public IActionResult Remove(int id)
+        {
+            var data = _userCommand.Remove(id);
+            return View("Index", data);
+        }
+
+        public IActionResult RemoveList(List<long> ids)
+        {
+            var data = _userCommand.RemoveRange(ids);
+            return View("Index", data);
+        }
+
+        public IActionResult Upsert()
+        {
+            var data = _userCommand.Upsert(new User()
+            {
+                Email = $"{Guid.NewGuid().ToString()}@outlook.com",
+                FullName = "Upsert" + DateTime.Now.ToString("t"),
+                Password = "password",
+                UserName = Guid.NewGuid().ToString(),
+                Salt = "noon",
+                RoleId = 1,
+            });
+            return View("Index", data);
         }
     }
 }

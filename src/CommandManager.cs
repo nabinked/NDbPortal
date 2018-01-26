@@ -35,7 +35,7 @@ namespace NDbPortal
 
         public IDbCommand PrepareCommandForExecution(string sql, object parameters = null)
         {
-            return PopulateParameters(_cmd, sql, parameters);
+            return PopulateParameters(GetCommand(), sql, parameters);
         }
 
         #endregion

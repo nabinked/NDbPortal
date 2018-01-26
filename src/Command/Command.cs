@@ -89,27 +89,26 @@ namespace NDbPortal.Command
             }
         }
 
-        public bool Remove(T obj)
-        {
-            var primaryKeyName = _sqlGenerator.TableInfo.PrimaryKey;
-            var id = ReflectionUtilities.GetPropertyValue<TPrimary>(primaryKeyName, obj);
-            return Remove(id);
-        }
-
         public bool RemoveRange(List<TPrimary> idsList)
         {
-            foreach (TPrimary id in idsList)
+            try
             {
-
+                BeginTransaction();
+                foreach (var id in idsList)
+                {
+                    var finalCommand = _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetDeleteQuery(), new { id });
+                    Mapper.ExecuteNonQuery(finalCommand);
+                }
+                CommitTransaction();
             }
-
-            return false;
+            catch
+            {
+                RollbackTransaction();
+                throw;
+            }
+            return true;
         }
 
-        public bool RemoveRange(List<T> objs)
-        {
-            return false;
-        }
 
         public long Upsert(T obj)
         {
@@ -128,12 +127,16 @@ namespace NDbPortal.Command
 
         public void CommitTransaction()
         {
-            _cmd.Transaction.Commit();
+            _cmd.Transaction?.Commit();
+            _cmd.Connection?.Dispose();
+            _cmd?.Dispose();
         }
 
         public void RollbackTransaction()
         {
-            _cmd.Transaction.Rollback();
+            _cmd.Transaction?.Rollback();
+            _cmd.Connection?.Dispose();
+            _cmd?.Dispose();
         }
 
 
@@ -146,19 +149,16 @@ namespace NDbPortal.Command
         private bool IsNew(T t)
         {
             var primaryKey = _sqlGenerator.TableInfo.PrimaryKey;
-            if (t.HasProperty(primaryKey))
-            {
-                var primaryKeyProperty =
-                    t.GetType()
-                        .GetProperties()
-                        .FirstOrDefault(x => x.Name.Equals(primaryKey, StringComparison.OrdinalIgnoreCase));
-                var primaryKeyValue = primaryKeyProperty.GetGetMethod().Invoke(t, null);
+            var primaryKeyProperty =
+                t.GetType()
+                    .GetProperties()
+                    .FirstOrDefault(x => x.Name.Equals(primaryKey, StringComparison.OrdinalIgnoreCase));
+            var primaryKeyValue = primaryKeyProperty.GetGetMethod().Invoke(t, null);
 
-                if (primaryKeyValue == null ||
-                    primaryKeyValue.Equals(Activator.CreateInstance(primaryKeyProperty.PropertyType)))
-                {
-                    return true;
-                }
+            if (primaryKeyValue == null ||
+                primaryKeyValue.Equals(Activator.CreateInstance(primaryKeyProperty.PropertyType)))
+            {
+                return true;
             }
             return false;
         }
