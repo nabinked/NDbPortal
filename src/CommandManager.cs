@@ -19,9 +19,11 @@ namespace NDbPortal
 
         #region Public Behaviours
 
-        public IDbCommand GetNewCommand()
+        public IDbCommand GetNewCommand(CommandType commandType = CommandType.Text)
         {
-            return _commandFactory.Create();
+            var cmd = _commandFactory.Create();
+            cmd.CommandType = commandType;
+            return cmd;
         }
 
         public void PrepareCommandForExecution(IDbCommand cmd, string sql, object parameters = null)

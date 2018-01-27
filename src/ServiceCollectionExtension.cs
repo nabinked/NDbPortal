@@ -23,7 +23,7 @@ namespace NDbPortal
             services.AddSingleton<INamingConvention, NamingConvention>();
             services.AddSingleton<IConnectionFactory, ConnectionFactory>();
             services.AddSingleton<ICommandFactory, CommandFactory>();
-            services.AddSingleton<IStoredProcedure, StoredProcedure>();
+            services.AddScoped<IStoredProcedure, StoredProcedure>();
             services.AddScoped<ICommandManager, CommandManager>();
             services.TryAdd(ServiceDescriptor.Scoped(typeof(ITableInfoBuilder<>), typeof(TableInfoBuilder<>)));
             services.TryAdd(ServiceDescriptor.Scoped(typeof(ISqlGenerator<>), typeof(SqlGenerator<>)));

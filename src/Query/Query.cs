@@ -14,7 +14,7 @@ namespace NDbPortal.Query
         private readonly ICommandManager _commandManager;
         private readonly DbOptions _dbOptions;
         private readonly ISqlGenerator<T> _sqlGenerator;
-        private IDbCommand _cmd;
+        private readonly IDbCommand _cmd;
 
         public Query(IOptions<DbOptions> dbOptions, ICommandManager commandManager, ISqlGenerator<T> sqlGenerator)
         {

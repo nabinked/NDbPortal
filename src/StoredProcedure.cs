@@ -13,14 +13,14 @@ namespace NDbPortal
         private readonly ICommandManager _commandManager;
         private readonly INamingConvention _namingConvention;
         private readonly DbOptions _dbOptions;
-        private IDbCommand _cmd;
+        private readonly IDbCommand _cmd;
 
         public StoredProcedure(ICommandManager commandManager, INamingConvention namingConvention, IOptions<DbOptions> dbOptions)
         {
             _commandManager = commandManager;
             _namingConvention = namingConvention;
             _dbOptions = dbOptions.Value;
-            _cmd = commandManager.GetNewCommand();
+            _cmd = commandManager.GetNewCommand(CommandType.StoredProcedure);
         }
         /// <summary>
         /// Invokes a stored procedure
@@ -71,6 +71,7 @@ namespace NDbPortal
         {
             try
             {
+                _cmd.CommandType = CommandType.Text;
                 _commandManager.BeginTransaction(_cmd);
                 var pageSize = _dbOptions.PagedListSize;
                 var offset = pageSize * page;

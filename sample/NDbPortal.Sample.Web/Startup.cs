@@ -16,9 +16,10 @@ namespace NDbPortal.Sample.Web
                 options.ConnectionStrings = new ConnectionStrings()
                 {
                     DefaultConnectionString =
-                        "Server=127.0.0.1;Port=5432;Database=ltv;User Id=postgres;Password = nabin"
+                        "Server=nabinpgdb.c1tsmv4vaaey.us-west-2.rds.amazonaws.com;" +
+                        "Port=5432;Database=nabinpgdb;User Id=ltv;Password = ltvABCD!@34"
                 };
-                options.DefaultSchema = "ltv_dev";
+                options.DefaultSchema = "ltv";
             });
 
 
