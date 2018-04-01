@@ -4,7 +4,6 @@ using System.Data;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
-using Microsoft.Extensions.Options;
 using NDbPortal.Names;
 
 namespace NDbPortal.Query
@@ -12,16 +11,14 @@ namespace NDbPortal.Query
     public class Query<T, TKey> : IQuery<T, TKey> where T : class
     {
         private readonly ICommandManager _commandManager;
-        private readonly DbOptions _dbOptions;
         private readonly ISqlGenerator<T> _sqlGenerator;
         private readonly IDbCommand _cmd;
 
-        public Query(IOptions<DbOptions> dbOptions, ICommandManager commandManager, ISqlGenerator<T> sqlGenerator)
+        public Query(ICommandManager commandManager, ISqlGenerator<T> sqlGenerator)
         {
             _commandManager = commandManager;
             _cmd = commandManager.GetNewCommand();
             _sqlGenerator = sqlGenerator;
-            _dbOptions = dbOptions.Value;
         }
         public T Get(TKey id)
         {

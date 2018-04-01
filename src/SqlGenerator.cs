@@ -88,20 +88,9 @@ namespace NDbPortal
             return $"SELECT * FROM {TableInfo.FullTableName} ORDER BY {orderByColumnName} DESC LIMIT {_dbOptions.PagedListSize} OFFSET {GetOffset(page, _dbOptions.PagedListSize)}";
         }
 
-
         public string GetCountQuery()
         {
             return $"SELECT COUNT(*) FROM {TableInfo.FullTableName};";
-        }
-
-        public string GetStoredProcQuery(object prms = null)
-        {
-            return $"SELECT * FROM {TableInfo.FullTableName}({_paramParser.GetStoredProcParamsNameValuesOnlySql(prms)})";
-        }
-
-        public string GetStoredProcCountQuery(object prms = null)
-        {
-            return $"SELECT COUNT(*) FROM {TableInfo.FullTableName}({_paramParser.GetStoredProcParamsNameValuesOnlySql(prms)});";
         }
         #endregion
 

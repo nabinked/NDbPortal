@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using NDbPortal.Command;
 using NDbPortal.Names;
 using NDbPortal.Query;
+using NDbPortal.StoredProcedures;
 
 namespace NDbPortal
 {
@@ -23,6 +24,8 @@ namespace NDbPortal
             services.AddSingleton<INamingConvention, NamingConvention>();
             services.AddSingleton<IConnectionFactory, ConnectionFactory>();
             services.AddSingleton<ICommandFactory, CommandFactory>();
+            services.AddSingleton<IParamParser, ParamParser>();
+            services.AddScoped<IStoredProcedureSql, StoredProcedureSql>();
             services.AddScoped<IStoredProcedure, StoredProcedure>();
             services.AddScoped<ICommandManager, CommandManager>();
             services.TryAdd(ServiceDescriptor.Scoped(typeof(ITableInfoBuilder<>), typeof(TableInfoBuilder<>)));

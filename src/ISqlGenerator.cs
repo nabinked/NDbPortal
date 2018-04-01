@@ -13,8 +13,6 @@ namespace NDbPortal
         string GetSelectAllQuery();
         string GetSelectByColumnNameQuery(string columnName);
         string GetSelectByIdQuery();
-        string GetStoredProcCountQuery(object prms = null);
-        string GetStoredProcQuery(object prms = null);
         string GetUpdateQuery();
     }
 }

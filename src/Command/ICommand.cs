@@ -2,7 +2,7 @@
 
 namespace NDbPortal.Command
 {
-    public interface ICommand<T, TPrimary> where T : class
+    public interface ICommand<in T, TPrimary> where T : class
     {
         /// <summary>
         /// Adds an entity
