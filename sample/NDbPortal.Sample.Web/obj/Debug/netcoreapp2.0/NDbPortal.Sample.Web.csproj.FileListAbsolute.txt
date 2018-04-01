@@ -1,0 +1,16 @@
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\bin\Debug\netcoreapp2.0\NDbPortal.Sample.Web.deps.json
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\bin\Debug\netcoreapp2.0\NDbPortal.Sample.Web.runtimeconfig.json
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\bin\Debug\netcoreapp2.0\NDbPortal.Sample.Web.runtimeconfig.dev.json
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\bin\Debug\netcoreapp2.0\NDbPortal.Sample.Web.dll
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\obj\Debug\netcoreapp2.0\NDbPortal.Sample.Web.csprojResolveAssemblyReference.cache
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\obj\Debug\netcoreapp2.0\NDbPortal.Sample.Web.csproj.CoreCompileInputs.cache
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\obj\Debug\netcoreapp2.0\NDbPortal.Sample.Web.AssemblyInfoInputs.cache
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\obj\Debug\netcoreapp2.0\NDbPortal.Sample.Web.AssemblyInfo.cs
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\bin\Debug\netcoreapp2.0\NDbPortal.Sample.Web.pdb
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\obj\Debug\netcoreapp2.0\NDbPortal.Sample.Web.dll
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\obj\Debug\netcoreapp2.0\NDbPortal.Sample.Web.pdb
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\bin\Debug\netcoreapp2.0\NDbPortal.dll
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\bin\Debug\netcoreapp2.0\NDbPortal.pdb
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\bin\Debug\netcoreapp2.0\NDbPortal.Names.dll
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\bin\Debug\netcoreapp2.0\NDbPortal.Names.pdb
+C:\Users\nabin\source\repos\NDbPortal\NDbPortal\sample\NDbPortal.Sample.Web\obj\Debug\netcoreapp2.0\NDbPortal.Sample.Web.csproj.CopyComplete
