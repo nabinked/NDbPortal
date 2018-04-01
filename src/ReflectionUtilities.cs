@@ -93,25 +93,24 @@ namespace NDbPortal
             return retObject;
         }
 
-
-        public static object GetPropertyValue(string propertyName, object obj)
+        public static TProperty GetPropertyValue<TProperty>(string propertyName, object obj)
         {
             if (obj is IDynamicMetaObjectProvider)
             {
                 var propertyValues = (IDictionary<string, object>)obj;
-                return propertyValues[propertyName];
+                return CastTo<TProperty>(propertyValues[propertyName]);
             }
             else
             {
-                if (obj == null || string.IsNullOrWhiteSpace(propertyName)) return null;
+                if (obj == null || string.IsNullOrWhiteSpace(propertyName)) return default(TProperty);
                 var properties = obj.GetType().GetProperties();
-                object first = null;
+                var first = default(TProperty);
                 var propertyFound = false;
                 foreach (var propertyInfo in properties)
                 {
                     if (string.Equals(propertyInfo.Name, propertyName, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        first = propertyInfo.GetValue(obj, null);
+                        first = CastTo<TProperty>(propertyInfo.GetValue(obj, null));
                         propertyFound = true;
                         break;
                     }
@@ -120,9 +119,8 @@ namespace NDbPortal
                 {
                     throw new Exception($"Property {propertyName} not found");
                 }
-                return properties.Any() ? first : null;
+                return first;
             }
-
         }
 
         public static IEnumerable<string> GetProperties(object obj)
@@ -165,15 +163,10 @@ namespace NDbPortal
             return obj.GetType().GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Instance) != null;
         }
 
-        public static string GetPrimaryKey<T>(T t)
+        public static T CastTo<T>(object input)
         {
-            return GetPrimaryKey(typeof(T).GetTypeInfo());
+            return (T)Convert.ChangeType(input, typeof(T));
         }
 
-        public static string GetPrimaryKey(TypeInfo t)
-        {
-            var priamryKeyAttr = t.GetCustomAttributes<PrimaryKeyAttribute>(true).ToList();
-            return priamryKeyAttr.Count > 0 ? priamryKeyAttr[0].Value : "id";
-        }
     }
 }

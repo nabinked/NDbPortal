@@ -14,12 +14,12 @@ namespace NDbPortal
         /// <param name="command">Command to be executed</param>
         /// <param name="dispose">dispose the command</param>
         /// <returns>an instance of T</returns>
-        public static T GetObject<T>(IDbCommand command, bool dispose = true)
+        public static T GetObject<T>(IDbCommand command)
         {
             IDataReader rdr = null;
             try
             {
-                if (command.Connection.State != ConnectionState.Open)
+                if (command.Connection.State == ConnectionState.Closed)
                     command.Connection.Open();
                 var hasRows = false;
                 T t = default(T);
@@ -34,11 +34,12 @@ namespace NDbPortal
                     }
 
                 }
+
                 return hasRows ? t : default(T);
             }
             finally
             {
-                if (dispose)
+                if (!IsInTransaction(command))
                 {
                     Dispose(command, rdr);
 
@@ -50,9 +51,8 @@ namespace NDbPortal
         /// Gets a list of T Objects from the command
         /// </summary>
         /// <param name="command">Command to be executed</param>
-        /// <param name="dispose">dispose cmd object</param>
         /// <returns>List of instance of T objects</returns>
-        public static IEnumerable<T> GetObjects<T>(IDbCommand command, bool dispose = true)
+        public static IEnumerable<T> GetObjects<T>(IDbCommand command)
         {
             IDataReader rdr = null;
             try
@@ -71,7 +71,7 @@ namespace NDbPortal
             }
             finally
             {
-                if (dispose)
+                if (!IsInTransaction(command))
                 {
                     Dispose(command, rdr);
                 }
@@ -99,12 +99,12 @@ namespace NDbPortal
             }
             finally
             {
-                Dispose(cmd, rdr);
+                if (!IsInTransaction(cmd)) Dispose(cmd, rdr);
 
             }
         }
 
-        public static T ExecuteScalar<T>(IDbCommand cmd, bool dispose = true)
+        public static T ExecuteScalar<T>(IDbCommand cmd)
         {
             try
             {
@@ -114,7 +114,7 @@ namespace NDbPortal
             }
             finally
             {
-                if (dispose)
+                if (!IsInTransaction(cmd))
                 {
                     Dispose(cmd);
                 }
@@ -132,7 +132,7 @@ namespace NDbPortal
             }
             finally
             {
-                Dispose(cmd);
+                if (!IsInTransaction(cmd)) Dispose(cmd);
             }
         }
 
@@ -245,6 +245,10 @@ namespace NDbPortal
             rdr?.Dispose();
         }
 
+        private static bool IsInTransaction(IDbCommand cmd)
+        {
+            return cmd.Transaction != null;
+        }
         #endregion
     }
 }

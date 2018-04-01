@@ -1,13 +1,16 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using NDbPortal.Command;
 using NDbPortal.Names;
+using NDbPortal.Query;
+using NDbPortal.StoredProcedures;
 
 namespace NDbPortal
 {
     public static class ServiceCollectionExtension
     {
-        public static IServiceCollection AddDbPortal(this IServiceCollection services, Action<DbOptions> setupAction)
+        public static IServiceCollection AddNDbPortal(this IServiceCollection services, Action<DbOptions> setupAction)
         {
             if (services == null)
             {
@@ -21,9 +24,14 @@ namespace NDbPortal
             services.AddSingleton<INamingConvention, NamingConvention>();
             services.AddSingleton<IConnectionFactory, ConnectionFactory>();
             services.AddSingleton<ICommandFactory, CommandFactory>();
-            services.AddSingleton<IStoredProcedure, StoredProcedure>();
+            services.AddSingleton<IParamParser, ParamParser>();
+            services.AddScoped<IStoredProcedureSql, StoredProcedureSql>();
+            services.AddScoped<IStoredProcedure, StoredProcedure>();
+            services.AddScoped<ICommandManager, CommandManager>();
             services.TryAdd(ServiceDescriptor.Scoped(typeof(ITableInfoBuilder<>), typeof(TableInfoBuilder<>)));
-            services.TryAdd(ServiceDescriptor.Scoped(typeof(IRepository<>), typeof(Repository<>)));
+            services.TryAdd(ServiceDescriptor.Scoped(typeof(ISqlGenerator<>), typeof(SqlGenerator<>)));
+            services.TryAdd(ServiceDescriptor.Scoped(typeof(ICommand<,>), typeof(Command<,>)));
+            services.TryAdd(ServiceDescriptor.Scoped(typeof(IQuery<,>), typeof(Query<,>)));
             services.Configure(setupAction);
             return services;
         }

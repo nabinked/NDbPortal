@@ -16,22 +16,34 @@ namespace NDbPortal
             this._connectionFactory = new ConnectionFactory(connectionString);
         }
 
-        public IDbCommand Create(string commandText, object parameters = null, bool isStoredProcedure = false)
+        public IDbCommand Create()
         {
-            var cmd = _connectionFactory.Create().CreateCommand();
+            return Create(_connectionFactory.Create());
+        }
+
+        public IDbCommand Create(bool isStoredProcedure)
+        {
+            return Create(_connectionFactory.Create(), isStoredProcedure);
+        }
+
+
+        public IDbCommand Create(IDbConnection connection, bool isStoredProcedure = false)
+        {
+            var cmd = connection.CreateCommand();
+            cmd.Connection = connection;
             if (isStoredProcedure)
             {
                 cmd.CommandType = CommandType.StoredProcedure;
             }
-            var cmdTextParam = new CommandBuilder(cmd);
-            return cmdTextParam.GetFinalCommand(commandText, parameters);
+
+            return cmd;
+
         }
 
-        public IDbCommand Create(IDbCommand cmd, string commandText, object parameters = null)
+        public void AttachConnection(IDbCommand command)
         {
-            var cmdTextParam = new CommandBuilder(cmd);
-            return cmdTextParam.GetFinalCommand(commandText, parameters);
-
+            command.Connection = _connectionFactory.Create();
         }
+
     }
 }

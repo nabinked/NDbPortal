@@ -1,0 +1,7 @@
+﻿namespace NDbPortal
+{
+    interface IRoutine
+    {
+
+    }
+}

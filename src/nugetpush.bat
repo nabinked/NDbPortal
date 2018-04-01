@@ -1,8 +1,13 @@
 echo off
 echo "%*"
 IF "%1"=="Debug" (
-    nuget push "%2" %mygetApiKey% -source "mero-feed"
+    IF NOT "%mygetApiKey"=="" (
+        nuget push "%2" %mygetApiKey% -source "myget-nabin"
+    )
 )
 IF "%1"=="Release" (
-    nuget push "%2" %nugetApiKey% -source "nuget.org"
+    IF NOT "%mygetApiKey"=="" (
+    nuget push "%2" %nugetApiKey% -source "nuget.org"    
+    )    
 )
+exit 0;
