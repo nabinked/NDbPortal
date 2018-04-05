@@ -2,49 +2,45 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
-using Microsoft.Extensions.Options;
-using NDbPortal.Names;
 
 namespace NDbPortal.Command
 {
-    public class Command<T, TPrimary> : ICommand<T, TPrimary> where T : class
+    public class Command<T> : ICommand<T> where T : class
     {
         private readonly ICommandManager _cmdManager;
         private readonly ISqlGenerator<T> _sqlGenerator;
-        private readonly IDbCommand _cmd;
-
 
         public Command(ICommandManager cmdManager, ISqlGenerator<T> sqlGenerator)
         {
             _cmdManager = cmdManager;
             _sqlGenerator = sqlGenerator;
-            _cmd = cmdManager.GetNewCommand();
         }
 
         public long Add(T obj)
         {
-            _cmdManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetInsertQuery(), obj);
-            return Mapper.GetObject<long>(_cmd);
+            var cmd = _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetInsertQuery(), obj);
+            var ret = Mapper.GetObject<long>(cmd);
+            Dispose(cmd);
+            return ret;
         }
 
         public IList<long> AddRange(IEnumerable<T> entities)
         {
             var returnIds = new List<long>();
+            var cmd = BeginTransaction();
             try
             {
-                BeginTransaction();
                 foreach (var entity in entities)
                 {
-                    _cmdManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetInsertQuery(), entity);
-                    returnIds.Add(Mapper.GetObject<long>(_cmd));
+                    _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetInsertQuery(), entity, cmd);
+                    returnIds.Add(Mapper.GetObject<long>(cmd));
                 }
-                CommitTransaction();
+                CommitTransaction(cmd);
             }
             catch
             {
                 returnIds.Clear();
-                RollbackTransaction();
+                RollbackTransaction(cmd);
                 throw;
             }
             return returnIds;
@@ -52,52 +48,57 @@ namespace NDbPortal.Command
 
         public long Update(T obj)
         {
-            _cmdManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetUpdateQuery(), obj);
-            return Mapper.ExecuteNonQuery(_cmd);
+            var cmd = _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetUpdateQuery(), obj);
+            var ret = Mapper.ExecuteNonQuery(cmd);
+            Dispose(cmd);
+            return ret;
         }
 
         public long UpdateRange(IEnumerable<T> entities)
         {
             long affectedRecordsCount = 0;
+            var cmd = BeginTransaction();
             try
             {
-                BeginTransaction();
                 foreach (var entity in entities)
                 {
-                    _cmdManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetUpdateQuery(), entity);
-                    affectedRecordsCount += Mapper.ExecuteNonQuery(_cmd);
+                    _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetUpdateQuery(), entity, cmd);
+                    affectedRecordsCount += Mapper.ExecuteNonQuery(cmd);
                 }
-                CommitTransaction();
+                CommitTransaction(cmd);
             }
             catch
             {
-                RollbackTransaction();
+                RollbackTransaction(cmd);
                 affectedRecordsCount = 0;
             }
             return affectedRecordsCount;
         }
 
-        public bool Remove(TPrimary id)
+        public bool Remove(object id)
         {
-            _cmdManager.PrepareCommandForExecution(_cmd,_sqlGenerator.GetDeleteQuery(), new { id });
-            return Mapper.ExecuteNonQuery(_cmd) > 0;
+            var cmd = _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetDeleteQuery(), new { id });
+            var ret= Mapper.ExecuteNonQuery(cmd) > 0;
+            Dispose(cmd);
+            return ret;
         }
 
-        public bool RemoveRange(List<TPrimary> idsList)
+        public bool RemoveRange<TKey>(IEnumerable<TKey> idsList)
         {
+            var cmd = BeginTransaction();
+
             try
             {
-                BeginTransaction();
                 foreach (var id in idsList)
                 {
-                    _cmdManager.PrepareCommandForExecution(_cmd,_sqlGenerator.GetDeleteQuery(), new { id });
-                    Mapper.ExecuteNonQuery(_cmd);
+                    _cmdManager.PrepareCommandForExecution(_sqlGenerator.GetDeleteQuery(), new { id }, cmd);
+                    Mapper.ExecuteNonQuery(cmd);
                 }
-                CommitTransaction();
+                CommitTransaction(cmd);
             }
             catch
             {
-                RollbackTransaction();
+                RollbackTransaction(cmd);
                 throw;
             }
             return true;
@@ -109,19 +110,19 @@ namespace NDbPortal.Command
             return IsNew(obj) ? Add(obj) : Update(obj);
         }
 
-        public void BeginTransaction()
+        public IDbCommand BeginTransaction()
         {
-            _cmdManager.BeginTransaction(_cmd);
+            return _cmdManager.BeginTransaction();
         }
 
-        public void CommitTransaction()
+        public void CommitTransaction(IDbCommand cmd)
         {
-            _cmdManager.CommitTransaction(_cmd);
+            _cmdManager.CommitTransaction(cmd);
         }
 
-        public void RollbackTransaction()
+        public void RollbackTransaction(IDbCommand cmd)
         {
-            _cmdManager.RollbackTransaction(_cmd);
+            _cmdManager.RollbackTransaction(cmd);
         }
 
 
@@ -140,12 +141,17 @@ namespace NDbPortal.Command
                     .FirstOrDefault(x => x.Name.Equals(primaryKey, StringComparison.OrdinalIgnoreCase));
             var primaryKeyValue = primaryKeyProperty.GetGetMethod().Invoke(t, null);
 
-            if (primaryKeyValue == null ||
-                primaryKeyValue.Equals(Activator.CreateInstance(primaryKeyProperty.PropertyType)))
-            {
-                return true;
-            }
-            return false;
+            return primaryKeyValue == null ||
+                   primaryKeyValue.Equals(Activator.CreateInstance(primaryKeyProperty.PropertyType));
+        }
+
+
+        private void Dispose(IDbCommand cmd)
+        {
+            cmd.Transaction?.Commit();
+            cmd.Connection?.Close();
+            cmd.Connection?.Dispose();
+            cmd?.Dispose();
         }
 
         #endregion

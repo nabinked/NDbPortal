@@ -13,7 +13,6 @@ namespace NDbPortal.StoredProcedures
         private readonly INamingConvention _namingConvention;
         private readonly IStoredProcedureSql _storedProcedureSql;
         private readonly DbOptions _dbOptions;
-        private readonly IDbCommand _cmd;
 
         public StoredProcedure(ICommandManager commandManager,
             INamingConvention namingConvention,
@@ -24,7 +23,6 @@ namespace NDbPortal.StoredProcedures
             _namingConvention = namingConvention;
             _storedProcedureSql = storedProcSql;
             _dbOptions = dbOptions.Value;
-            _cmd = commandManager.GetNewCommand(CommandType.StoredProcedure);
         }
         /// <summary>
         /// Invokes a stored procedure
@@ -34,19 +32,16 @@ namespace NDbPortal.StoredProcedures
         public void Invoke<TParams>(string name, TParams prms = null) where TParams : class
         {
             var fName = Utils.GetSchemaQualifiedName(name, _dbOptions.DefaultSchema);
-            _commandManager.PrepareCommandForExecution(_cmd, fName, prms);
-            Mapper.ExecuteNonQuery(_cmd);
+            var cmd = _commandManager.PrepareCommandForExecution(fName, prms, null, CommandType.StoredProcedure);
+            Mapper.ExecuteNonQuery(cmd);
         }
 
         public T Get<T, TParams>(TParams prm = null)
             where T : class
             where TParams : class
         {
-
-            var attr = ReflectionUtilities.GetEntityAttribute(typeof(T));
-            _commandManager.PrepareCommandForExecution(_cmd, GetTableInfo<T>().FullTableName, prm);
-            return Mapper.GetObject<T>(_cmd);
-
+            var cmd = _commandManager.PrepareCommandForExecution(GetTableInfo<T>().FullTableName, prm, null, CommandType.StoredProcedure);
+            return Mapper.GetObject<T>(cmd);
         }
 
         public T Get<T, TParams>(string name, TParams prm = null)
@@ -54,8 +49,8 @@ namespace NDbPortal.StoredProcedures
             where TParams : class
         {
             var fName = Utils.GetSchemaQualifiedName(name, _dbOptions.DefaultSchema);
-            _commandManager.PrepareCommandForExecution(_cmd, fName, prm);
-            return Mapper.GetObject<T>(_cmd);
+            var cmd = _commandManager.PrepareCommandForExecution(fName, prm, null, CommandType.StoredProcedure);
+            return Mapper.GetObject<T>(cmd);
         }
 
         public IEnumerable<T> GetList<T, TParams>(TParams prm = null)
@@ -70,8 +65,8 @@ namespace NDbPortal.StoredProcedures
             where TParams : class
         {
             var fName = Utils.GetSchemaQualifiedName(name, _dbOptions.DefaultSchema);
-            _commandManager.PrepareCommandForExecution(_cmd, fName, prm);
-            return Mapper.GetObjects<T>(_cmd);
+            var cmd = _commandManager.PrepareCommandForExecution(fName, prm, null, CommandType.StoredProcedure);
+            return Mapper.GetObjects<T>(cmd);
         }
 
         public PagedList<T> GetPagedList<T, TParams>(long page, TParams prm = null)
@@ -85,30 +80,29 @@ namespace NDbPortal.StoredProcedures
             where T : class
             where TParams : class
         {
+            var cmd = _commandManager.BeginTransaction();
             try
             {
-                _cmd.CommandType = CommandType.Text;
-                _commandManager.BeginTransaction(_cmd);
                 var pageSize = _dbOptions.PagedListSize;
                 var offset = pageSize * page;
                 var sql = _storedProcedureSql.GetStoredProcQuery(name, prm);
                 sql = sql.AppendLimitOffset(pageSize, offset);
-                _commandManager.PrepareCommandForExecution(_cmd, sql, prm);
+                _commandManager.PrepareCommandForExecution(sql, prm, cmd);
                 //get the actual list into list property of pagedList;
-                IList<T> list = Mapper.GetObjects<T>(_cmd).ToList();
+                IList<T> list = Mapper.GetObjects<T>(cmd).ToList();
                 //change the command text to get the count of the query query
                 var countSql = _storedProcedureSql.GetStoredProcCountQuery(name, prm);
-                _commandManager.PrepareCommandForExecution(_cmd, countSql, prm);
-                var pagedList = new PagedList<T>(Mapper.ExecuteScalar<long>(_cmd), GetCurrentPage(pageSize, offset))
+                _commandManager.PrepareCommandForExecution(countSql, prm, cmd);
+                var pagedList = new PagedList<T>(Mapper.ExecuteScalar<long>(cmd), GetCurrentPage(pageSize, offset))
                 {
                     List = list
                 };
-                _commandManager.CommitTransaction(_cmd);
+                _commandManager.CommitTransaction(cmd);
                 return pagedList;
             }
             catch
             {
-                _commandManager.RollbackTransaction(_cmd);
+                _commandManager.RollbackTransaction(cmd);
                 throw;
             }
 

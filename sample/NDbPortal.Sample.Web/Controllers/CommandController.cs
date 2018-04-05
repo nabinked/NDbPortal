@@ -8,9 +8,9 @@ namespace NDbPortal.Sample.Web.Controllers
 {
     public class CommandController : Controller
     {
-        private readonly ICommand<User, long> _userCommand;
+        private readonly ICommand<User> _userCommand;
 
-        public CommandController(ICommand<User, long> userCommand)
+        public CommandController(ICommand<User> userCommand)
         {
             _userCommand = userCommand;
         }

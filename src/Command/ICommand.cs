@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace NDbPortal.Command
 {
-    public interface ICommand<in T, TPrimary> where T : class
+    public interface ICommand<in T> where T : class
     {
         /// <summary>
         /// Adds an entity
@@ -38,14 +39,14 @@ namespace NDbPortal.Command
         /// </summary>
         /// <param name="id">id of the entity</param>
         /// <returns></returns>
-        bool Remove(TPrimary id);
+        bool Remove(object id);
         
         /// <summary>
         /// Removes a list of object using their primary ids
         /// </summary>
         /// <param name="idsList"></param>
         /// <returns></returns>
-        bool RemoveRange(List<TPrimary> idsList);
+        bool RemoveRange<TKey>(IEnumerable<TKey> idsList);
 
         /// <summary>
         /// Experimental method that updates entity if exists already otherwise creates a new one.
@@ -53,35 +54,6 @@ namespace NDbPortal.Command
         /// <param name="t"></param>
         /// <returns></returns>
         long Upsert(T t);
-
-        /// <summary>
-        /// Begins a transaction
-        /// </summary>
-        void BeginTransaction();
-        //
-        // Summary:
-        //     Commits the database transaction.
-        //
-        // Exceptions:
-        //   T:System.Exception:
-        //     An error occurred while trying to commit the transaction.
-        //
-        //   T:System.InvalidOperationException:
-        //     The transaction has already been committed or rolled back. -or- The connection
-        //     is broken.
-        void CommitTransaction();
-        //
-        // Summary:
-        //     Rolls back a transaction from a pending state.
-        //
-        // Exceptions:
-        //   T:System.Exception:
-        //     An error occurred while trying to commit the transaction.
-        //
-        //   T:System.InvalidOperationException:
-        //     The transaction has already been committed or rolled back. -or- The connection
-        //     is broken.
-        void RollbackTransaction();
 
     }
 }

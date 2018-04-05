@@ -5,8 +5,8 @@ namespace NDbPortal
     public interface ICommandManager
     {
         IDbCommand GetNewCommand(CommandType commandType = CommandType.Text);
-        void PrepareCommandForExecution(IDbCommand cmd, string sql, object parameters = null);
-        void BeginTransaction(IDbCommand cmd);
+        IDbCommand PrepareCommandForExecution(string sql, object parameters = null, IDbCommand cmd = null, CommandType commandType = CommandType.Text);
+        IDbCommand BeginTransaction();
         void CommitTransaction(IDbCommand cmd);
         void RollbackTransaction(IDbCommand cmd);
     }

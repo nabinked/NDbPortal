@@ -6,9 +6,9 @@ namespace NDbPortal.Sample.Web.Controllers
 {
     public class QueryController : Controller
     {
-        private readonly IQuery<User, long> _userQuery;
+        private readonly IQuery<User> _userQuery;
 
-        public QueryController(IQuery<User, long> userQuery)
+        public QueryController(IQuery<User> userQuery)
         {
             _userQuery = userQuery;
         }

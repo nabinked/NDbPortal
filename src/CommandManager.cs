@@ -8,7 +8,7 @@ namespace NDbPortal
     {
         private readonly ICommandFactory _commandFactory;
         private readonly INamingConvention _namingConvention;
-        private readonly ParamParser _paramParser;
+        private readonly IParamParser _paramParser;
 
         public CommandManager(ICommandFactory commandFactory, INamingConvention namingConvention)
         {
@@ -26,19 +26,22 @@ namespace NDbPortal
             return cmd;
         }
 
-        public void PrepareCommandForExecution(IDbCommand cmd, string sql, object parameters = null)
+        public IDbCommand PrepareCommandForExecution(string sql, object parameters = null, IDbCommand cmd = null, CommandType commandType = CommandType.Text)
         {
+            cmd = cmd ?? GetNewCommand(commandType);
             PopulateParameters(cmd, sql, parameters);
+            return cmd;
         }
 
-        public void BeginTransaction(IDbCommand cmd)
+        public IDbCommand BeginTransaction()
         {
+            var cmd = GetNewCommand();
             if (cmd.Connection.State != ConnectionState.Open)
             {
                 cmd.Connection.Open();
             }
-
-            cmd.Transaction = cmd.Connection.BeginTransaction();
+            cmd.Connection.BeginTransaction();
+            return cmd;
         }
 
         public void CommitTransaction(IDbCommand cmd)
@@ -63,28 +66,25 @@ namespace NDbPortal
         {
             cmd.Parameters.Clear();
             cmd.CommandText = sql;
-            if (parameters != null)
+            if (parameters == null) return;
+            if (cmd.CommandType == CommandType.StoredProcedure)
             {
-                if (cmd.CommandType == CommandType.StoredProcedure)
+                foreach (var propName in ReflectionUtilities.GetProperties(parameters))
                 {
-                    foreach (string propName in ReflectionUtilities.GetProperties(parameters))
-                    {
-                        cmd.Parameters.Add(GetParam(cmd, _namingConvention.ConvertToDbName(propName), ReflectionUtilities.GetPropertyValue<object>(propName, parameters)));
-                    }
+                    cmd.Parameters.Add(GetParam(cmd, _namingConvention.ConvertToDbName(propName), ReflectionUtilities.GetPropertyValue<object>(propName, parameters)));
                 }
-                else
+            }
+            else
+            {
+                var sqlParams = _paramParser.GeSqlParams(sql);
+                foreach (var sqlParam in sqlParams)
                 {
-                    var sqlParams = _paramParser.GeSqlParams(sql);
-                    foreach (var sqlParam in sqlParams)
-                    {
-                        var cleanParam = _paramParser.CleanParameter(sqlParam);
-                        var pocoNme = _namingConvention.ConvertToPocoName(cleanParam);
-                        var paramValue = ReflectionUtilities.GetPropertyValue<object>(pocoNme, parameters) ?? DBNull.Value;
-                        var parameter = GetParam(cmd, cleanParam, paramValue);
-                        cmd.Parameters.Add(parameter);
-                    }
+                    var cleanParam = _paramParser.CleanParameter(sqlParam);
+                    var pocoNme = _namingConvention.ConvertToPocoName(cleanParam);
+                    var paramValue = ReflectionUtilities.GetPropertyValue<object>(pocoNme, parameters) ?? DBNull.Value;
+                    var parameter = GetParam(cmd, cleanParam, paramValue);
+                    cmd.Parameters.Add(parameter);
                 }
-
             }
         }
         IDbDataParameter GetParam(IDbCommand dbCommand, string paramName, object paramValue)

@@ -8,28 +8,31 @@ using NDbPortal.Names;
 
 namespace NDbPortal.Query
 {
-    public class Query<T, TKey> : IQuery<T, TKey> where T : class
+    public class Query<T> : IQuery<T> where T : class
     {
         private readonly ICommandManager _commandManager;
         private readonly ISqlGenerator<T> _sqlGenerator;
-        private readonly IDbCommand _cmd;
 
         public Query(ICommandManager commandManager, ISqlGenerator<T> sqlGenerator)
         {
             _commandManager = commandManager;
-            _cmd = commandManager.GetNewCommand();
             _sqlGenerator = sqlGenerator;
         }
-        public T Get(TKey id)
+
+        public T Get(object id)
         {
-            _commandManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetSelectByIdQuery(), new { id });
-            return Mapper.GetObject<T>(_cmd);
+            var cmd = _commandManager.PrepareCommandForExecution(_sqlGenerator.GetSelectByIdQuery(), new { id });
+            var ret = Mapper.GetObject<T>(cmd);
+            Dispose(cmd);
+            return ret;
         }
 
         public IEnumerable<T> GetAll()
         {
-            _commandManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetSelectAllQuery());
-            return Mapper.GetObjects<T>(_cmd);
+            var cmd = _commandManager.PrepareCommandForExecution(_sqlGenerator.GetSelectAllQuery());
+            var ret = Mapper.GetObjects<T>(cmd);
+            Dispose(cmd);
+            return ret;
         }
 
         public T Find(Expression<Func<T, bool>> expression)
@@ -39,9 +42,10 @@ namespace NDbPortal.Query
             var paramObj = (IDictionary<string, object>)obj;
             paramObj[propertyName] = ReflectionUtilities.GetValueFromExpression(expression);
             var columnName = _sqlGenerator.NamingConvention.ConvertToDbName(propertyName);
-            _commandManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetSelectByColumnNameQuery(columnName), obj);
-            return Mapper.GetObject<T>(_cmd);
-
+            var cmd = _commandManager.PrepareCommandForExecution(_sqlGenerator.GetSelectByColumnNameQuery(columnName), obj);
+            var ret = Mapper.GetObject<T>(cmd);
+            Dispose(cmd);
+            return ret;
         }
 
         public IEnumerable<T> FindAll(Expression<Func<T, bool>> expression)
@@ -51,33 +55,68 @@ namespace NDbPortal.Query
             dynamic obj = new ExpandoObject();
             var paramObj = (IDictionary<string, object>)obj;
             paramObj[propertyName] = ReflectionUtilities.GetValueFromExpression(expression);
-            _commandManager.PrepareCommandForExecution(_cmd, _sqlGenerator.GetSelectByColumnNameQuery(columnName), obj);
-            return Mapper.GetObjects<T>(_cmd);
+            var cmd = _commandManager.PrepareCommandForExecution(_sqlGenerator.GetSelectByColumnNameQuery(columnName), obj);
+            var ret = Mapper.GetObjects<T>(cmd);
+            Dispose(cmd);
+            return ret;
         }
 
         public PagedList<T> GetPagedList(int page, string orderBy = "id")
         {
+            var cmd = _commandManager.BeginTransaction();
+
             try
             {
-                _commandManager.BeginTransaction(_cmd);
                 var mainSql = _sqlGenerator.GetPagedQuery(page, orderBy);
-                _commandManager.PrepareCommandForExecution(_cmd, mainSql);
-                IList<T> list = Mapper.GetObjects<T>(_cmd).ToList();
+                _commandManager.PrepareCommandForExecution(mainSql, null, cmd);
+                IList<T> list = Mapper.GetObjects<T>(cmd).ToList();
                 var countSql = _sqlGenerator.GetCountQuery();
-                _commandManager.PrepareCommandForExecution(_cmd, countSql);
-                var pagedList = new PagedList<T>(Mapper.ExecuteScalar<long>(_cmd), page)
+                _commandManager.PrepareCommandForExecution(countSql, cmd);
+                var pagedList = new PagedList<T>(Mapper.ExecuteScalar<long>(cmd), page)
                 {
                     List = list
                 };
-                _commandManager.CommitTransaction(_cmd);
+                _commandManager.CommitTransaction(cmd);
                 return pagedList;
             }
             catch
             {
-                _commandManager.RollbackTransaction(_cmd);
+                _commandManager.RollbackTransaction(cmd);
                 throw;
             }
         }
 
+        private void Dispose(IDbCommand cmd)
+        {
+            cmd.Transaction?.Commit();
+            cmd.Connection?.Close();
+            cmd.Connection?.Dispose();
+            cmd?.Dispose();
+        }
+
+    }
+
+    public class Query : IQuery
+    {
+        private readonly ICommandManager _commandManager;
+
+        public Query(ICommandManager commandManager)
+        {
+            _commandManager = commandManager;
+        }
+        public IEnumerable<T> ExecuteQuery<T>(string sql, object parameters)
+        {
+            var cmd = _commandManager.PrepareCommandForExecution(sql, parameters);
+            var ret = Mapper.GetObjects<T>(cmd);
+            Dispose(cmd);
+            return ret;
+        }
+        private void Dispose(IDbCommand cmd)
+        {
+            cmd.Transaction?.Commit();
+            cmd.Connection?.Close();
+            cmd.Connection?.Dispose();
+            cmd?.Dispose();
+        }
     }
 }

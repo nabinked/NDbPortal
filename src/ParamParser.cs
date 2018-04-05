@@ -65,7 +65,7 @@ namespace NDbPortal
                     paramStartIndex = i;
                 }
                 var endOfSql = i == sql.Length - 1;
-                if ((char.IsWhiteSpace(c) || c.Equals(',') || endOfSql) && paramFound)
+                if (paramFound && (char.IsWhiteSpace(c) || c.Equals(',') || endOfSql))
                 {
                     paramFound = false;
                     var paramStopIndex = endOfSql ? i + 1 : i;

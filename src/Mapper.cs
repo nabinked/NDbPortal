@@ -39,11 +39,7 @@ namespace NDbPortal
             }
             finally
             {
-                if (!IsInTransaction(command))
-                {
-                    Dispose(command, rdr);
-
-                }
+                Dispose(rdr);
             }
         }
 
@@ -71,10 +67,7 @@ namespace NDbPortal
             }
             finally
             {
-                if (!IsInTransaction(command))
-                {
-                    Dispose(command, rdr);
-                }
+                Dispose(rdr);
             }
         }
 
@@ -99,41 +92,26 @@ namespace NDbPortal
             }
             finally
             {
-                if (!IsInTransaction(cmd)) Dispose(cmd, rdr);
+                Dispose(rdr);
 
             }
         }
 
         public static T ExecuteScalar<T>(IDbCommand cmd)
         {
-            try
-            {
-                if (cmd.Connection.State != ConnectionState.Open)
-                    cmd.Connection.Open();
-                return ConvertTo<T>(cmd.ExecuteScalar());
-            }
-            finally
-            {
-                if (!IsInTransaction(cmd))
-                {
-                    Dispose(cmd);
-                }
-            }
+            if (cmd.Connection.State != ConnectionState.Open)
+                cmd.Connection.Open();
+            return ConvertTo<T>(cmd.ExecuteScalar());
+
 
         }
 
         public static int ExecuteNonQuery(IDbCommand cmd)
         {
-            try
-            {
-                if (cmd.Connection.State != ConnectionState.Open)
-                    cmd.Connection.Open();
-                return cmd.ExecuteNonQuery();
-            }
-            finally
-            {
-                if (!IsInTransaction(cmd)) Dispose(cmd);
-            }
+            if (cmd.Connection.State != ConnectionState.Open)
+                cmd.Connection.Open();
+            return cmd.ExecuteNonQuery();
+
         }
 
         #region Privates
@@ -237,17 +215,9 @@ namespace NDbPortal
             return t;
         }
 
-        private static void Dispose(IDbCommand cmd, IDataReader rdr = null)
+        private static void Dispose(IDataReader rdr = null)
         {
-            cmd.Connection.Close();
-            cmd.Connection.Dispose();
-            cmd.Dispose();
             rdr?.Dispose();
-        }
-
-        private static bool IsInTransaction(IDbCommand cmd)
-        {
-            return cmd.Transaction != null;
         }
         #endregion
     }

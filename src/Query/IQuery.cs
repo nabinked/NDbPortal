@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace NDbPortal.Query
 {
-    public interface IQuery<T, in TKey> where T : class
+    public interface IQuery<T> where T : class
     {
 
         /// <summary>
@@ -13,7 +13,7 @@ namespace NDbPortal.Query
         /// </summary>
         /// <param name="id">id</param>
         /// <returns>Entity Type</returns>
-        T Get(TKey id);
+        T Get(object id);
 
         /// <summary>
         /// Gets all the entities
@@ -43,5 +43,10 @@ namespace NDbPortal.Query
         /// <returns></returns>
         PagedList<T> GetPagedList(int page, string orderByColumn = "id");
 
+    }
+
+    public interface IQuery
+    {
+        IEnumerable<T> ExecuteQuery<T>(string sql, object parameters);
     }
 }
