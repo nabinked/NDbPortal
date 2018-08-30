@@ -105,9 +105,9 @@ namespace NDbPortal.Command
         }
 
 
-        public long Upsert(T obj)
+        public long Upsert(T t)
         {
-            return IsNew(obj) ? Add(obj) : Update(obj);
+            return IsNew(t) ? Add(t) : Update(t);
         }
 
         public IDbCommand BeginTransaction()

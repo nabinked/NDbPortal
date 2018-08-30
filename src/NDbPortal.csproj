@@ -4,7 +4,7 @@
     <Description>Data Access Layer for dot net core</Description>
     <Copyright>Nabin Karki Thapa</Copyright>
     <AssemblyTitle>NDbPortal</AssemblyTitle>
-    <VersionPrefix>2.0.7</VersionPrefix>
+    <VersionPrefix>2.0.8</VersionPrefix>
     <Authors>Nabin Kakri Thapa</Authors>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>NDbPortal</AssemblyName>
@@ -12,13 +12,13 @@
 
   <ItemGroup>
     <!--<PackageReference Include="NDbPortal.Names" Version="1.0.8" />-->
-    <PackageReference Include="Dapper" Version="1.50.4" />
-    <PackageReference Include="Npgsql" Version="3.2.7" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.4.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.0.1" />
+    <PackageReference Include="Dapper" Version="1.50.5" />
+    <PackageReference Include="Npgsql" Version="4.0.2" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.1.1" />
     <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
-    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.4.0" />
+    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.5.1" />
     <PackageReference Include="System.Reflection.Extensions" Version="4.3.0" />
   </ItemGroup>
 
