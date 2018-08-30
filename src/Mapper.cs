@@ -20,8 +20,11 @@ namespace NDbPortal
             try
             {
                 if (command.Connection.State == ConnectionState.Closed)
+                {
                     command.Connection.Open();
-                var hasRows = false;
+                }
+
+                bool hasRows = false;
                 T t = default(T);
                 using (rdr = command.ExecuteReader())
                 {
@@ -53,9 +56,12 @@ namespace NDbPortal
             IDataReader rdr = null;
             try
             {
-                var tList = new List<T>();
+                List<T> tList = new List<T>();
                 if (command.Connection.State != ConnectionState.Open)
+                {
                     command.Connection.Open();
+                }
+
                 using (rdr = command.ExecuteReader())
                 {
                     while (rdr.Read())
@@ -77,8 +83,11 @@ namespace NDbPortal
             try
             {
                 if (cmd.Connection.State != ConnectionState.Open)
+                {
                     cmd.Connection.Open();
-                var keyValPairs = new List<KeyValuePair<TKey, TValue>>();
+                }
+
+                List<KeyValuePair<TKey, TValue>> keyValPairs = new List<KeyValuePair<TKey, TValue>>();
                 using (rdr = cmd.ExecuteReader())
                 {
                     while (rdr.Read())
@@ -100,7 +109,10 @@ namespace NDbPortal
         public static T ExecuteScalar<T>(IDbCommand cmd)
         {
             if (cmd.Connection.State != ConnectionState.Open)
+            {
                 cmd.Connection.Open();
+            }
+
             return ConvertTo<T>(cmd.ExecuteScalar());
 
 
@@ -109,7 +121,10 @@ namespace NDbPortal
         public static int ExecuteNonQuery(IDbCommand cmd)
         {
             if (cmd.Connection.State != ConnectionState.Open)
+            {
                 cmd.Connection.Open();
+            }
+
             return cmd.ExecuteNonQuery();
 
         }
@@ -119,11 +134,11 @@ namespace NDbPortal
         private static List<PropertyInfo> GetOrderPropertyInfos(IEnumerable<string> columnNames,
            List<PropertyInfo> propertyInfo)
         {
-            var orderedPropertyInfos = new List<PropertyInfo>();
-            foreach (var name in columnNames)
+            List<PropertyInfo> orderedPropertyInfos = new List<PropertyInfo>();
+            foreach (string name in columnNames)
             {
 
-                var info = GetPropertyInfoForOrderedList(propertyInfo, name);
+                PropertyInfo info = GetPropertyInfoForOrderedList(propertyInfo, name);
 
                 if (info == null)
                 {
@@ -153,20 +168,29 @@ namespace NDbPortal
         private static void SetProperties<T>(IDataRecord rdrRow, T t, List<string> columnNames,
             List<PropertyInfo> orderedPropertyInfos)
         {
-            if (rdrRow == null) throw new ArgumentNullException(nameof(rdrRow));
-            for (var i = 0; i < columnNames.Count; i++)
+            if (rdrRow == null)
             {
-                var propertyInfo = orderedPropertyInfos[i];
-                var value = rdrRow.GetValue(i);
-                var propType = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
-                var safeValue = ConvertToSafeValue(value, propType);
+                throw new ArgumentNullException(nameof(rdrRow));
+            }
+
+            for (int i = 0; i < columnNames.Count; i++)
+            {
+                PropertyInfo propertyInfo = orderedPropertyInfos[i];
+                object value = rdrRow.GetValue(i);
+                Type propType = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
+                object safeValue = ConvertToSafeValue(value, propType);
                 propertyInfo.SetValue(t, safeValue, null);
             }
         }
 
         private static T ConvertTo<T>(object value)
         {
-            var type = typeof(T);
+            if (value == null)
+            {
+                return default(T);
+            }
+
+            Type type = typeof(T);
             return (T)ConvertToSafeValue(value, type);
 
         }
@@ -186,8 +210,8 @@ namespace NDbPortal
 
         private static T GetCastedObject<T>(this object val)
         {
-            var propType = Nullable.GetUnderlyingType(val.GetType()) ?? typeof(T);
-            var safeValue = (val == DBNull.Value) ? null : Convert.ChangeType(val, propType);
+            Type propType = Nullable.GetUnderlyingType(val.GetType()) ?? typeof(T);
+            object safeValue = (val == DBNull.Value) ? null : Convert.ChangeType(val, propType);
             if (safeValue != null)
             {
                 return (T)safeValue;
@@ -201,16 +225,19 @@ namespace NDbPortal
             {
                 return rdr.GetValue(0).GetCastedObject<T>();
             }
-            var t = Activator.CreateInstance<T>();
+            T t = Activator.CreateInstance<T>();
 
 
-            var columnNames = Enumerable.Range(0, rdr.FieldCount).Select(rdr.GetName).ToList();
-            var properties = typeof(T).GetProperties();
-            var orderedPropertyInfos = GetOrderPropertyInfos(columnNames, properties.ToList());
+            List<string> columnNames = Enumerable.Range(0, rdr.FieldCount).Select(rdr.GetName).ToList();
+            PropertyInfo[] properties = typeof(T).GetProperties();
+            List<PropertyInfo> orderedPropertyInfos = GetOrderPropertyInfos(columnNames, properties.ToList());
 
             if (columnNames.Count != orderedPropertyInfos.Count)
+            {
                 throw new Exception(
                     "Not all columns are mapped to object properties. Please Make sure that all the columns have thier respective properties or that they follow the specified naming conventions or that their names are not misspelled.");
+            }
+
             SetProperties(rdr, t, columnNames, orderedPropertyInfos);
             return t;
         }
