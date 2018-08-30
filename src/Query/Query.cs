@@ -61,21 +61,18 @@ namespace NDbPortal.Query
             return ret;
         }
 
-        public PagedList<T> GetPagedList(int page, string orderBy = "id")
+        public IPagedList<T> GetPagedList(int page, string orderByColumn = "id")
         {
             var cmd = _commandManager.BeginTransaction();
 
             try
             {
-                var mainSql = _sqlGenerator.GetPagedQuery(page, orderBy);
+                var mainSql = _sqlGenerator.GetPagedQuery(page, orderByColumn);
                 _commandManager.PrepareCommandForExecution(mainSql, null, cmd);
                 IList<T> list = Mapper.GetObjects<T>(cmd).ToList();
                 var countSql = _sqlGenerator.GetCountQuery();
                 _commandManager.PrepareCommandForExecution(countSql, cmd);
-                var pagedList = new PagedList<T>(Mapper.ExecuteScalar<long>(cmd), page)
-                {
-                    List = list
-                };
+                var pagedList = new PagedList<T>(list, Mapper.ExecuteScalar<long>(cmd), page);
                 _commandManager.CommitTransaction(cmd);
                 return pagedList;
             }
@@ -113,10 +110,7 @@ namespace NDbPortal.Query
         }
         private void Dispose(IDbCommand cmd)
         {
-            cmd.Transaction?.Commit();
-            cmd.Connection?.Close();
-            cmd.Connection?.Dispose();
-            cmd?.Dispose();
+            Utils.Dispose(cmd);
         }
     }
 }

@@ -34,6 +34,7 @@ namespace NDbPortal.StoredProcedures
             var fName = Utils.GetSchemaQualifiedName(name, _dbOptions.DefaultSchema);
             var cmd = _commandManager.PrepareCommandForExecution(fName, prms, null, CommandType.StoredProcedure);
             Mapper.ExecuteNonQuery(cmd);
+            Utils.Dispose(cmd);
         }
 
         public T Get<T, TParams>(TParams prm = null)
@@ -41,7 +42,9 @@ namespace NDbPortal.StoredProcedures
             where TParams : class
         {
             var cmd = _commandManager.PrepareCommandForExecution(GetTableInfo<T>().FullTableName, prm, null, CommandType.StoredProcedure);
-            return Mapper.GetObject<T>(cmd);
+            var ret = Mapper.GetObject<T>(cmd);
+            Utils.Dispose(cmd);
+            return ret;
         }
 
         public T Get<T, TParams>(string name, TParams prm = null)
@@ -50,7 +53,9 @@ namespace NDbPortal.StoredProcedures
         {
             var fName = Utils.GetSchemaQualifiedName(name, _dbOptions.DefaultSchema);
             var cmd = _commandManager.PrepareCommandForExecution(fName, prm, null, CommandType.StoredProcedure);
-            return Mapper.GetObject<T>(cmd);
+            var ret = Mapper.GetObject<T>(cmd);
+            Utils.Dispose(cmd);
+            return ret;
         }
 
         public IEnumerable<T> GetList<T, TParams>(TParams prm = null)
@@ -66,17 +71,19 @@ namespace NDbPortal.StoredProcedures
         {
             var fName = Utils.GetSchemaQualifiedName(name, _dbOptions.DefaultSchema);
             var cmd = _commandManager.PrepareCommandForExecution(fName, prm, null, CommandType.StoredProcedure);
-            return Mapper.GetObjects<T>(cmd);
+            var ret = Mapper.GetObjects<T>(cmd);
+            Utils.Dispose(cmd);
+            return ret;
         }
 
-        public PagedList<T> GetPagedList<T, TParams>(long page, TParams prm = null)
+        public IPagedList<T> GetPagedList<T, TParams>(long page, TParams prm = null)
             where T : class
             where TParams : class
         {
             return GetPagedList<T, TParams>(GetTableInfo<T>().FullTableName, page, prm);
         }
 
-        public PagedList<T> GetPagedList<T, TParams>(string name, long page, TParams prm = null)
+        public IPagedList<T> GetPagedList<T, TParams>(string name, long page, TParams prm = null)
             where T : class
             where TParams : class
         {
@@ -93,10 +100,8 @@ namespace NDbPortal.StoredProcedures
                 //change the command text to get the count of the query query
                 var countSql = _storedProcedureSql.GetStoredProcCountQuery(name, prm);
                 _commandManager.PrepareCommandForExecution(countSql, prm, cmd);
-                var pagedList = new PagedList<T>(Mapper.ExecuteScalar<long>(cmd), GetCurrentPage(pageSize, offset))
-                {
-                    List = list
-                };
+                var count = Mapper.ExecuteScalar<long>(cmd);
+                var pagedList = new PagedList<T>(list, count, GetCurrentPage(pageSize, offset));
                 _commandManager.CommitTransaction(cmd);
                 return pagedList;
             }
@@ -104,6 +109,10 @@ namespace NDbPortal.StoredProcedures
             {
                 _commandManager.RollbackTransaction(cmd);
                 throw;
+            }
+            finally
+            {
+                Utils.Dispose(cmd);
             }
 
         }

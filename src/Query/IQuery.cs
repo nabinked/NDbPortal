@@ -41,7 +41,7 @@ namespace NDbPortal.Query
         /// <param name="page"></param>
         /// <param name="orderByColumn">order by column name</param>
         /// <returns></returns>
-        PagedList<T> GetPagedList(int page, string orderByColumn = "id");
+        IPagedList<T> GetPagedList(int page, string orderByColumn = "id");
 
     }
 

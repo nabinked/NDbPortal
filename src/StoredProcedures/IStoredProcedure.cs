@@ -26,11 +26,11 @@ namespace NDbPortal
             where TParams : class;
 
 
-        PagedList<T> GetPagedList<T, TParams>(long page, TParams prm = null)
+        IPagedList<T> GetPagedList<T, TParams>(long page, TParams prm = null)
             where T : class
             where TParams : class;
 
-        PagedList<T> GetPagedList<T, TParams>(string name, long page, TParams prm = null)
+        IPagedList<T> GetPagedList<T, TParams>(string name, long page, TParams prm = null)
             where T : class
             where TParams : class;
 

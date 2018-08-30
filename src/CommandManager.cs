@@ -28,6 +28,7 @@ namespace NDbPortal
 
         public IDbCommand PrepareCommandForExecution(string sql, object parameters = null, IDbCommand cmd = null, CommandType commandType = CommandType.Text)
         {
+            commandType = commandType < CommandType.Text ? CommandType.Text : commandType;
             cmd = cmd ?? GetNewCommand(commandType);
             PopulateParameters(cmd, sql, parameters);
             return cmd;

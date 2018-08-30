@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Data;
+using System.Text;
 
 namespace NDbPortal
 {
@@ -28,6 +29,14 @@ namespace NDbPortal
             }
 
             return sb.ToString();
+        }
+
+        public static void Dispose(IDbCommand cmd)
+        {
+            cmd.Transaction?.Commit();
+            cmd.Connection?.Close();
+            cmd.Connection?.Dispose();
+            cmd?.Dispose();
         }
     }
 }

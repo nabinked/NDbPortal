@@ -24,6 +24,16 @@ namespace NDbPortal.Sample.Web.Controllers
             return View("Index", model);
         }
 
+        public IActionResult Find(string userName)
+        {
+            var model = _userQuery.Find(u => u.UserName == userName);
+            return View("Index", model);
+        }
+        public IActionResult FindAll(string userName)
+        {
+            var model = _userQuery.FindAll(u => u.UserName.ToLower() == userName.ToLower());
+            return View("Index", model);
+        }
         public IActionResult GetPagedList(int page)
         {
             var model = _userQuery.GetPagedList(page);
